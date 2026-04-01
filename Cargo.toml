@@ -1,0 +1,9 @@
+[package]
+name = "licenses"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "*", default-features = true, features = ["derive"] }
+cargo_metadata = { version = "*", default-features = false }
+anyhow = "*"
