@@ -20,7 +20,7 @@ impl From<cargo_metadata::Package> for Package {
                 .manifest_path
                 .as_std_path()
                 .parent()
-                .expect("manifest not in folder")
+                .expect("manifest not in a folder")
                 .to_path_buf(),
         }
     }
@@ -28,14 +28,13 @@ impl From<cargo_metadata::Package> for Package {
 
 pub fn dependencies(
     project_path: &Path,
-    excluded_members: &[String],
+    excluded: &[String],
 ) -> anyhow::Result<impl Iterator<Item = Package>> {
     let metadata = cargo_metadata::MetadataCommand::new()
         .current_dir(project_path)
         .exec()
         .context("failed to execute cargo metadata")?;
-    let included =
-        included_package_ids(&metadata, &excluded_member_ids(&metadata, excluded_members));
+    let included = included_ids(&metadata, &excluded_ids(&metadata, excluded));
     Ok(metadata
         .packages
         .into_iter()
@@ -43,33 +42,37 @@ pub fn dependencies(
         .map(Package::from))
 }
 
-fn excluded_member_ids<'m>(
-    metadata: &'m Metadata,
-    excluded_members: &[String],
-) -> Vec<&'m PackageId> {
+fn excluded_ids<'m>(metadata: &'m Metadata, excluded: &[String]) -> Vec<&'m PackageId> {
     metadata
         .packages
         .iter()
-        .filter(|package| excluded_members.contains(&package.name))
+        .filter(|package| excluded.contains(&package.name))
         .map(|package| &package.id)
         .collect()
 }
 
-fn included_package_ids(metadata: &Metadata, excluded_members: &[&PackageId]) -> Vec<PackageId> {
+fn included_ids(metadata: &Metadata, excluded: &[&PackageId]) -> Vec<PackageId> {
     let mut unvisited: Vec<_> = metadata
         .workspace_members
         .iter()
-        .filter(|member| !excluded_members.contains(member))
+        .filter(|member| !excluded.contains(member))
         .collect();
     let mut included = Vec::new();
     let nodes = &metadata.resolve.as_ref().unwrap().nodes;
     while let Some(package_id) = unvisited.pop() {
-        let dependencies = nodes
-            .iter()
-            .find(|package| package.id == *package_id)
-            .unwrap();
-        unvisited.extend(dependencies.dependencies.iter());
-        included.push(package_id.to_owned())
+        unvisited.extend(
+            nodes
+                .iter()
+                .find(|package| package.id == *package_id)
+                .unwrap()
+                .dependencies
+                .iter()
+                .filter(|id| !excluded.contains(id))
+                .filter(|id| !included.contains(*id)),
+        );
+        if !excluded.contains(&package_id) && !metadata.workspace_members.contains(&package_id) {
+            included.push(package_id.to_owned())
+        }
     }
     included
 }
