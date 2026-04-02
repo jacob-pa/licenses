@@ -1,7 +1,6 @@
 use crate::file_name::is_license;
 use anyhow::{Context, anyhow};
 use serde::Deserialize;
-use std::fs::FileType;
 use std::path::Path;
 use url::Url;
 

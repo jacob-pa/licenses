@@ -27,7 +27,7 @@ fn copy_local(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
         let license_name = license_path.file_name().unwrap().to_str().unwrap();
         std::fs::copy(
             &license_path,
-            output_file(&args.output_directory, &dependency.name, license_name),
+            output_file(&args.output_directory, &dependency, license_name),
         )?;
     }
     Ok(())
@@ -36,14 +36,14 @@ fn copy_local(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
 fn copy_remote(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
     for license_url in &dependency.remote_licenses {
         let license_name = license_url.path_segments().unwrap().last().unwrap();
-        let output_path = output_file(&args.output_directory, &dependency.name, license_name);
+        let output_path = output_file(&args.output_directory, &dependency, license_name);
         remote::download(license_url, &output_path)?;
     }
     Ok(())
 }
 
-fn output_file(output_directory: &Path, crate_name: &str, license_name: &str) -> PathBuf {
-    let file_name = format!("{}-{}", crate_name, license_name);
+fn output_file(output_directory: &Path, dependency: &Dependency, license_name: &str) -> PathBuf {
+    let file_name = format!("{}-{}", dependency.name, license_name);
     output_directory.join(file_name)
 }
 
