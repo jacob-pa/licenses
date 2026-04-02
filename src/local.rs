@@ -1,5 +1,5 @@
 use crate::license;
-use crate::license::License;
+use crate::license::{License, probable_license_type};
 use std::path::{Path, PathBuf};
 
 pub type Local = License<PathBuf>;
@@ -10,9 +10,13 @@ pub fn license_file_paths(folder: &Path) -> impl Iterator<Item = Local> {
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
         .filter(is_license)
-        .map(|path| Local {
-            name: path.file_name().unwrap().to_str().unwrap().to_string(),
-            location: path,
+        .map(|path| {
+            let name = path.file_name().unwrap().to_str().unwrap().to_string();
+            Local {
+                location: path,
+                license_type: probable_license_type(&name),
+                name,
+            }
         })
 }
 

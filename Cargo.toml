@@ -9,4 +9,5 @@ cargo_metadata = { version = "*", default-features = false }
 anyhow = "*"
 ureq = { version = "*", features = ["json"] }
 url = { version = "*", features = ["serde"] }
-serde = { version = "1.0.228", features = ["derive"] }
+serde = { version = "*", features = ["derive"] }
+strum = { version = "*", features = ["derive"] }

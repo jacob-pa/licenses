@@ -1,4 +1,4 @@
-use crate::license::{License, is_license};
+use crate::license::{License, is_license, probable_license_type};
 use anyhow::{Context, anyhow};
 use serde::Deserialize;
 use std::path::Path;
@@ -17,12 +17,13 @@ pub fn license_file_urls(repo_url: &str) -> anyhow::Result<impl Iterator<Item = 
         .into_iter()
         .filter(|file| is_license(&file.name))
         .map(|file| Remote {
-            name: file.name,
             location: file.download_url.unwrap(),
+            license_type: probable_license_type(&file.name),
+            name: file.name,
         }))
 }
 
-pub fn download(url: &url::Url, output: &Path) -> anyhow::Result<()> {
+pub fn download(url: &Url, output: &Path) -> anyhow::Result<()> {
     std::io::copy(
         &mut ureq::get(url.as_str()).call()?.into_body().into_reader(),
         &mut std::fs::File::create(output)?,
@@ -31,7 +32,7 @@ pub fn download(url: &url::Url, output: &Path) -> anyhow::Result<()> {
 }
 
 fn api_url_from_repo_url(repo_url: &str) -> anyhow::Result<String> {
-    let url = url::Url::parse(repo_url).context("invalid URL")?;
+    let url = Url::parse(repo_url).context("invalid URL")?;
     if url.host_str() != Some("github.com") {
         return Err(anyhow!("not a github.com URL: {repo_url}"));
     }
