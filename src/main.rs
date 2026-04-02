@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 fn main() -> anyhow::Result<()> {
     let args = Arguments::parse();
     let deps =
-        dependency::dependencies(&args.project_directory, &args.excluded, &args.search_remote)?;
+        dependency::dependencies(&args.project_directory, &args.excluded, args.search_remote)?;
     warning::print_warnings(&deps);
     std::fs::create_dir_all(&args.output_directory)?;
     for dependency in deps {
@@ -59,7 +59,7 @@ struct Arguments {
     output_directory: PathBuf,
 }
 
-#[derive(ValueEnum, Clone)]
+#[derive(ValueEnum, Clone, Copy)]
 enum SearchRemote {
     Never,
     Auto,
