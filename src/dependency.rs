@@ -24,7 +24,7 @@ fn package_to_dependency(
     package: Package,
     search_remote: SearchRemote,
 ) -> anyhow::Result<Dependency> {
-    let local: Vec<_> = local::license_file_paths(&package.project_folder).collect();
+    let local: Vec<_> = local::license_file_paths(&package.project_folder);
     let remote = remote_licenses(&package.repository, &local, search_remote)?;
     Ok(Dependency {
         name: package.name,

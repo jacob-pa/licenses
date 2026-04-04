@@ -1,4 +1,4 @@
-use crate::license::{License, is_license, probable_license_type};
+use crate::license::{License, is_license};
 use anyhow::{Context, anyhow};
 use serde::Deserialize;
 use std::path::Path;
@@ -18,7 +18,6 @@ pub fn license_file_urls(repo_url: &str) -> anyhow::Result<impl Iterator<Item = 
         .filter(|file| is_license(&file.name))
         .map(|file| Remote {
             location: file.download_url.unwrap(),
-            license_type: probable_license_type(&file.name),
             name: file.name,
         }))
 }

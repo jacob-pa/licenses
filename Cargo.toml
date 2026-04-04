@@ -10,4 +10,3 @@ anyhow = "*"
 ureq = { version = "*", features = ["json"] }
 url = { version = "*", features = ["serde"] }
 serde = { version = "*", features = ["derive"] }
-strum = { version = "*", features = ["derive"] }
