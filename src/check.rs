@@ -27,18 +27,18 @@ pub fn check(args: &Arguments) -> anyhow::Result<()> {
         );
     }
 
-    // let licenses: Vec<_> = files(license_directory).map(path_to_license).collect();
-    // let unknown: Vec<_> = licenses
-    //     .iter()
-    //     .filter(|l| l.id_from_name.is_none())
-    //     .map(|l| l.name.clone())
-    //     .collect();
-    // println!(
-    //     "{} unknown license types out of {}: {}",
-    //     unknown.len(),
-    //     licenses.len(),
-    //     unknown.join(", ")
-    // );
+    let unknown: Vec<_> = licenses
+        .iter()
+        .map(IdentifiedLicense::from)
+        .filter(|l| l.id_from_name.is_none())
+        .map(|l| l.license.name.clone())
+        .collect();
+    println!(
+        "{} unknown license types out of {}: {}",
+        unknown.len(),
+        licenses.len(),
+        unknown.join(", ")
+    );
     Ok(())
 }
 
@@ -55,16 +55,32 @@ fn missing_or_unexpected_licenses(
     (missing, unexpected)
 }
 
-// struct License {
-//     name: String,
-//     id_from_name: Option<LicenseId>,
-//     path: PathBuf,
-// }
-//
-// fn id_from_name(path: &Path) -> Option<LicenseId> {
-//     path.file_name()?
-//         .to_str()?
-//         .split('-')
-//         .filter_map(|word| spdx::imprecise_license_id(word).map(|(id, _)| id))
-//         .next()
-// }
+struct IdentifiedLicense<'a> {
+    license: &'a Local,
+    id_from_name: Option<LicenseId>,
+}
+
+impl<'a> From<&'a Local> for IdentifiedLicense<'a> {
+    fn from(license: &'a Local) -> Self {
+        Self {
+            id_from_name: id_from_name(&license.location),
+            license,
+        }
+    }
+}
+
+fn id_from_name(path: &Path) -> Option<LicenseId> {
+    // slightly arbitrarily preferring earlier words, and more precise names
+    path.file_name()?
+        .to_str()?
+        .split('-')
+        .skip(1) // package name
+        .flat_map(possible_ids_from_word)
+        .next()
+}
+
+fn possible_ids_from_word(word: &str) -> impl Iterator<Item = LicenseId> {
+    let precise = spdx::license_id(word).into_iter();
+    let imprecise = spdx::imprecise_license_id(word).map(|(id, _)| id);
+    precise.chain(imprecise)
+}
