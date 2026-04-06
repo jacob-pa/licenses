@@ -2,8 +2,9 @@ use crate::local::Local;
 use crate::package::Package;
 use crate::{Arguments, local, package};
 use spdx::LicenseId;
+use spdx::detection::scan::Scanner;
 use std::collections::HashSet;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub fn check(args: &Arguments) -> anyhow::Result<()> {
     let dependencies: Vec<_> =
@@ -27,11 +28,10 @@ pub fn check(args: &Arguments) -> anyhow::Result<()> {
         );
     }
 
-    let unknown: Vec<_> = licenses
-        .iter()
-        .map(IdentifiedLicense::from)
-        .filter(|l| l.id_from_name.is_none())
-        .map(|l| l.license.name.clone())
+    let unknown: Vec<_> = identifies_licenses(&licenses)?
+        .into_iter()
+        .filter(|l| l.id_from_name.is_none() && l.id_from_content.is_none())
+        .map(|l| l.license.location.to_string_lossy().to_string())
         .collect();
     println!(
         "{} unknown license types out of {}: {}",
@@ -55,18 +55,33 @@ fn missing_or_unexpected_licenses(
     (missing, unexpected)
 }
 
+fn identifies_licenses(licenses: &'_ [Local]) -> anyhow::Result<Vec<IdentifiedLicense<'_>>> {
+    let store = spdx::detection::Store::load_inline()?;
+    let scanner = spdx::detection::scan::Scanner::new(&store);
+    licenses
+        .iter()
+        .map(|license| identify_license(&scanner, &license))
+        .collect()
+}
+
 struct IdentifiedLicense<'a> {
     license: &'a Local,
     id_from_name: Option<LicenseId>,
+    id_from_content: Option<LicenseId>,
 }
 
-impl<'a> From<&'a Local> for IdentifiedLicense<'a> {
-    fn from(license: &'a Local) -> Self {
-        Self {
-            id_from_name: id_from_name(&license.location),
-            license,
-        }
-    }
+fn identify_license<'a>(
+    scanner: &Scanner,
+    license: &'a Local,
+) -> anyhow::Result<IdentifiedLicense<'a>> {
+    Ok(IdentifiedLicense {
+        id_from_name: id_from_name(&license.location),
+        id_from_content: scanner
+            .scan(&std::fs::read_to_string(&license.location)?.into())
+            .license
+            .and_then(|license| spdx::license_id(license.name)),
+        license,
+    })
 }
 
 fn id_from_name(path: &Path) -> Option<LicenseId> {

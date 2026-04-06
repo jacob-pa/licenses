@@ -10,4 +10,4 @@ anyhow = "*"
 ureq = { version = "*", features = ["json"] }
 url = { version = "*", features = ["serde"] }
 serde = { version = "*", features = ["derive"] }
-spdx = { version = "*" }
+spdx = { version = "*", features = ["detection-parallel", "detection", "detection-inline-cache"] }
