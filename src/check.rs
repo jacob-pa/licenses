@@ -2,10 +2,13 @@ use crate::Arguments;
 use crate::identity::IdentifiedLicense;
 use crate::local::Local;
 use crate::package::Package;
+use crate::report::{ConfiguredReporter, Reporter, StderrReporter};
 use spdx::LicenseId;
 use std::collections::HashSet;
+use std::process::ExitCode;
 
-pub fn check(args: &Arguments) -> anyhow::Result<()> {
+pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
+    let mut reporter = ConfiguredReporter::new(StderrReporter, false, false);
     let dependencies: Vec<_> =
         crate::package::dependencies(&args.project_directory, &args.excluded)?.collect();
     let licenses = crate::local::output_folder_licenses(&args.output_directory);
@@ -15,38 +18,38 @@ pub fn check(args: &Arguments) -> anyhow::Result<()> {
     let copy_left = copy_left_licenses(&licenses);
 
     if !missing.is_empty() {
-        println!(
+        reporter.error(format!(
             "{} dependencies missing licenses: {}",
             missing.len(),
             missing.join(", ")
-        );
+        ));
     }
 
     if !unexpected.is_empty() {
-        println!(
+        reporter.warning(format!(
             "{} unused dependency licenses found in output folder: {}",
             unexpected.len(),
             unexpected.join(", ")
-        );
+        ));
     }
 
     if !unknown.is_empty() {
-        println!(
+        reporter.error(format!(
             "{} unknown license types: {}",
             unknown.len(),
             unknown.join(", ")
-        );
+        ));
     }
 
     if !copy_left.is_empty() {
-        println!(
+        reporter.error(format!(
             "{} maybe copy-left licenses found: {}",
             copy_left.len(),
             copy_left.join(", ")
-        );
+        ));
     }
 
-    Ok(())
+    Ok(reporter.exit_code())
 }
 
 fn missing_or_unexpected_licenses(

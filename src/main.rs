@@ -6,12 +6,13 @@ mod license;
 mod local;
 mod package;
 mod remote;
-mod warning;
+mod report;
 
 use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
+use std::process::ExitCode;
 
-fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<ExitCode> {
     match Command::parse() {
         Command::Get(args) => get::get(&args),
         Command::Check(args) => check::check(&args),
