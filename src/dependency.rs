@@ -35,7 +35,7 @@ fn package_to_dependency(
 
 fn remote_licenses(
     package: &Package,
-    local: &Vec<Local>,
+    local: &[Local],
     search_remote: SearchRemote,
 ) -> anyhow::Result<Vec<Remote>> {
     if let Some(repo_url) = &package.repository
@@ -47,9 +47,9 @@ fn remote_licenses(
     }
 }
 
-fn should_search_remote(local: &Vec<Local>, search_remote: SearchRemote) -> bool {
-    match (local.len(), search_remote) {
-        (0, SearchRemote::Auto) | (_, SearchRemote::Always) => true,
-        _ => false,
-    }
+fn should_search_remote(local: &[Local], search_remote: SearchRemote) -> bool {
+    matches!(
+        (local.len(), search_remote),
+        (0, SearchRemote::Auto) | (_, SearchRemote::Always)
+    )
 }

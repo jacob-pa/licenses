@@ -35,7 +35,7 @@ pub fn dependencies(
     Ok(metadata
         .packages
         .into_iter()
-        .filter(move |package| included.contains(&&package.id))
+        .filter(move |package| included.contains(&package.id))
         .map(Package::from))
 }
 
@@ -67,7 +67,7 @@ fn included_ids(metadata: &Metadata, excluded: &[&PackageId]) -> Vec<PackageId> 
                 .filter(|id| !excluded.contains(id))
                 .filter(|id| !included.contains(*id)),
         );
-        if !excluded.contains(&package_id) && !metadata.workspace_members.contains(&package_id) {
+        if !excluded.contains(&package_id) && !metadata.workspace_members.contains(package_id) {
             included.push(package_id.to_owned())
         }
     }

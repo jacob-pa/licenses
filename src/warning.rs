@@ -1,6 +1,6 @@
 use crate::dependency::Dependency;
 
-pub fn print_warnings(deps: &Vec<Dependency>) {
+pub fn print_warnings(deps: &[Dependency]) {
     let total_licenses = deps
         .iter()
         .map(|d| d.local_licenses.len() + d.remote_licenses.len())

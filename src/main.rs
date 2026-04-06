@@ -1,6 +1,7 @@
 mod check;
 mod dependency;
 mod get;
+mod identity;
 mod license;
 mod local;
 mod package;

@@ -38,6 +38,7 @@ pub fn output_folder_licenses(project_folder: &Path) -> Vec<Local> {
         .collect()
 }
 
+#[allow(clippy::ptr_arg)]
 fn is_license(path: &PathBuf) -> bool {
     path.file_name()
         .and_then(|name| name.to_str())
