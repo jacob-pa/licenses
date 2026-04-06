@@ -1,8 +1,8 @@
 use crate::dependency::Dependency;
-use crate::{GetArguments, dependency, remote, warning};
+use crate::{Arguments, dependency, remote, warning};
 use std::path::{Path, PathBuf};
 
-pub fn get(args: &GetArguments) -> anyhow::Result<()> {
+pub fn get(args: &Arguments) -> anyhow::Result<()> {
     let deps =
         dependency::dependencies(&args.project_directory, &args.excluded, args.search_remote)?;
     warning::print_warnings(&deps);
@@ -14,7 +14,7 @@ pub fn get(args: &GetArguments) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn copy_local(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<()> {
+fn copy_local(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
     for license in &dependency.local_licenses {
         std::fs::copy(
             &license.location,
@@ -24,7 +24,7 @@ fn copy_local(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<()
     Ok(())
 }
 
-fn copy_remote(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<()> {
+fn copy_remote(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
     for license in &dependency.remote_licenses {
         let output_path = output_file(&args.output_directory, &dependency, &license.name);
         remote::download(&license.location, &output_path)?;
@@ -33,6 +33,6 @@ fn copy_remote(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<(
 }
 
 fn output_file(output_directory: &Path, dependency: &Dependency, license_name: &str) -> PathBuf {
-    let file_name = format!("{}-{}", dependency.name.replace('-', "_"), license_name);
+    let file_name = format!("{}-{}", dependency.name, license_name);
     output_directory.join(file_name)
 }

@@ -11,7 +11,7 @@ pub struct Package {
 impl From<cargo_metadata::Package> for Package {
     fn from(package: cargo_metadata::Package) -> Self {
         Self {
-            name: package.name.to_string(),
+            name: package.name.replace('-', "_"),
             repository: package.repository,
             project_folder: package
                 .manifest_path

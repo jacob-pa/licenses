@@ -13,21 +13,18 @@ use std::path::PathBuf;
 fn main() -> anyhow::Result<()> {
     match Command::parse() {
         Command::Get(args) => get::get(&args),
-        Command::Check { license_directory } => check::check(&license_directory),
+        Command::Check(args) => check::check(&args),
     }
 }
 
 #[derive(Parser)]
 enum Command {
-    Get(GetArguments),
-    Check {
-        #[clap(short, long, default_value = "./licenses/")]
-        license_directory: PathBuf,
-    },
+    Get(Arguments),
+    Check(Arguments),
 }
 
 #[derive(Parser)]
-struct GetArguments {
+struct Arguments {
     #[clap(short, long)]
     excluded: Vec<String>,
     #[clap(short, long, default_value = "auto")]
