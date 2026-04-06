@@ -510,6 +510,7 @@ dependencies = [
  "anyhow",
  "cargo_metadata",
  "clap",
+ "rayon",
  "serde",
  "spdx",
  "ureq",

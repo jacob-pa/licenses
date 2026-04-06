@@ -1,15 +1,15 @@
+use crate::Arguments;
 use crate::local::Local;
 use crate::package::Package;
-use crate::{Arguments, local, package};
-use spdx::LicenseId;
-use spdx::detection::scan::Scanner;
+use rayon::prelude::*;
+use spdx::{LicenseId, detection::scan::Scanner};
 use std::collections::HashSet;
 use std::path::Path;
 
 pub fn check(args: &Arguments) -> anyhow::Result<()> {
     let dependencies: Vec<_> =
-        package::dependencies(&args.project_directory, &args.excluded)?.collect();
-    let licenses = local::output_folder_licenses(&args.output_directory);
+        crate::package::dependencies(&args.project_directory, &args.excluded)?.collect();
+    let licenses = crate::local::output_folder_licenses(&args.output_directory);
     let (missing, unexpected) = missing_or_unexpected_licenses(&dependencies, &licenses);
 
     if !missing.is_empty() {
@@ -59,7 +59,7 @@ fn identifies_licenses(licenses: &'_ [Local]) -> anyhow::Result<Vec<IdentifiedLi
     let store = spdx::detection::Store::load_inline()?;
     let scanner = spdx::detection::scan::Scanner::new(&store);
     licenses
-        .iter()
+        .par_iter()
         .map(|license| identify_license(&scanner, &license))
         .collect()
 }
