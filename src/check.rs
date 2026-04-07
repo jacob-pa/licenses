@@ -23,9 +23,25 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
 
     if !missing.is_empty() {
         reporter.error(format!(
-            "{} dependencies missing licenses: {}",
+            "{} dependencies without any licenses: {}",
             missing.len(),
             missing.join(", ")
+        ));
+    }
+
+    if !unmet_spdx.is_empty() {
+        reporter.error(format!(
+            "{} packages without licenses required by their cargo toml: {}",
+            unmet_spdx.len(),
+            unmet_spdx.join(", ")
+        ));
+    }
+
+    if !copy_left.is_empty() {
+        reporter.error(format!(
+            "{} copy-left licenses found: {}",
+            copy_left.len(),
+            copy_left.join(", ")
         ));
     }
 
@@ -38,26 +54,10 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     }
 
     if !unknown.is_empty() {
-        reporter.error(format!(
+        reporter.warning(format!(
             "{} unknown license types: {}",
             unknown.len(),
             unknown.join(", ")
-        ));
-    }
-
-    if !copy_left.is_empty() {
-        reporter.error(format!(
-            "{} maybe copy-left licenses found: {}",
-            copy_left.len(),
-            copy_left.join(", ")
-        ));
-    }
-
-    if !unmet_spdx.is_empty() {
-        reporter.error(format!(
-            "{} packages without licenses required by their cargo toml: {}",
-            unmet_spdx.len(),
-            unmet_spdx.join(", ")
         ));
     }
 
