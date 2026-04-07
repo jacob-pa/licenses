@@ -34,7 +34,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
 
     if !unmet_spdx.is_empty() {
         reporter.error(format!(
-            "{} packages without licenses required by their cargo toml: {}",
+            "{} packages without licenses required by their Cargo.toml package.license field: {}",
             unmet_spdx.len(),
             unmet_spdx.join(", ")
         ));
@@ -42,7 +42,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
 
     if !copy_left.is_empty() {
         reporter.error(format!(
-            "{} copy-left licenses: {}",
+            "{} files with at least one copy-left license: {}",
             copy_left.len(),
             copy_left.join(", ")
         ));
@@ -50,7 +50,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
 
     if !unknown.is_empty() {
         reporter.warning(format!(
-            "{} unknown license types: {}",
+            "{} license files types with unknown types: {}",
             unknown.len(),
             unknown.join(", ")
         ));
@@ -66,7 +66,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
 
     if !unexpected.is_empty() {
         reporter.info(format!(
-            "{} licenses not needed by any dependency: {}",
+            "{} license files from packages that are not dependencies: {}",
             unexpected.len(),
             unexpected.join(", ")
         ));
