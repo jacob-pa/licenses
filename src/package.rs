@@ -6,6 +6,7 @@ pub struct Package {
     pub name: String,
     pub repository: Option<String>,
     pub project_folder: PathBuf,
+    pub spdx_license: Option<spdx::Expression>,
 }
 
 impl From<cargo_metadata::Package> for Package {
@@ -19,6 +20,9 @@ impl From<cargo_metadata::Package> for Package {
                 .parent()
                 .expect("manifest not in a folder")
                 .to_path_buf(),
+            spdx_license: package
+                .license
+                .and_then(|l| spdx::Expression::parse(&l).ok()),
         }
     }
 }
