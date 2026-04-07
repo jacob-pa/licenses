@@ -42,17 +42,9 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
 
     if !copy_left.is_empty() {
         reporter.error(format!(
-            "{} copy-left licenses found: {}",
+            "{} copy-left licenses: {}",
             copy_left.len(),
             copy_left.join(", ")
-        ));
-    }
-
-    if !unexpected.is_empty() {
-        reporter.warning(format!(
-            "{} licenses not needed by any dependency found in output folder: {}",
-            unexpected.len(),
-            unexpected.join(", ")
         ));
     }
 
@@ -65,10 +57,18 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     }
 
     if !extraneous.is_empty() {
-        reporter.warning(format!(
+        reporter.info(format!(
             "{} licenses which are not required according to dependency Cargo.toml files: {}",
             extraneous.len(),
             extraneous.join(", ")
+        ));
+    }
+
+    if !unexpected.is_empty() {
+        reporter.info(format!(
+            "{} licenses not needed by any dependency: {}",
+            unexpected.len(),
+            unexpected.join(", ")
         ));
     }
 
