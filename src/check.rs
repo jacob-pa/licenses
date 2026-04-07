@@ -47,7 +47,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
 
     if !unexpected.is_empty() {
         reporter.warning(format!(
-            "{} unused dependency licenses found in output folder: {}",
+            "{} licenses not needed by any dependency found in output folder: {}",
             unexpected.len(),
             unexpected.join(", ")
         ));
@@ -71,7 +71,20 @@ fn missing_or_unexpected_licenses(
     let expected: HashSet<_> = dependencies.iter().map(|p| p.name.clone()).collect();
     let found: HashSet<_> = licenses.iter().map(|l| l.package.clone()).collect();
     let missing: Vec<_> = sorted(expected.difference(&found).cloned().collect());
-    let unexpected: Vec<_> = sorted(found.difference(&expected).cloned().collect());
+    let unexpected: Vec<_> = sorted(
+        found
+            .difference(&expected)
+            .flat_map(|p| {
+                licenses.iter().filter(|l| l.package == *p).map(|l| {
+                    l.location
+                        .file_name()
+                        .unwrap()
+                        .to_string_lossy()
+                        .to_string()
+                })
+            })
+            .collect(),
+    );
     (missing, unexpected)
 }
 
