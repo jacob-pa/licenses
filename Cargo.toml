@@ -16,5 +16,8 @@ indicatif = { version = "*", features = ["rayon"] }
 colored = "*"
 toml_edit = "*"
 
+[dev-dependencies]
+tempfile = "*"
+
 [lints.clippy]
 print_stdout = "deny"

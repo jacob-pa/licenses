@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct License<T> {
     pub package: String,
     pub name: String,

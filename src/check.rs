@@ -46,7 +46,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
         |m| reporter.warning(m),
         misnamed_licenses(&licenses),
         misnamed_report,
-        "license files with suggested types from their name that don't contents",
+        "license files with inferred types that don't match between name vs contents",
     );
 
     report_if_any(
