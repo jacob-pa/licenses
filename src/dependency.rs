@@ -1,8 +1,7 @@
 use crate::local::Local;
 use crate::package::Package;
 use crate::remote::Remote;
-use crate::{SearchRemote, local, package, remote};
-use std::path::Path;
+use crate::{Arguments, SearchRemote, local, package, remote};
 
 pub struct Dependency {
     pub name: String,
@@ -10,13 +9,9 @@ pub struct Dependency {
     pub remote_licenses: Vec<Remote>,
 }
 
-pub fn dependencies(
-    project_directory: &Path,
-    excluded: &[String],
-    search_remote: SearchRemote,
-) -> anyhow::Result<Vec<Dependency>> {
-    package::dependencies(project_directory, excluded)?
-        .map(|package| package_to_dependency(package, search_remote))
+pub fn dependencies(args: &Arguments) -> anyhow::Result<Vec<Dependency>> {
+    package::dependencies(args)?
+        .map(|package| package_to_dependency(package, args.search_remote))
         .collect()
 }
 

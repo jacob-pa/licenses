@@ -1,6 +1,7 @@
+use crate::Arguments;
 use anyhow::Context;
-use cargo_metadata::{Metadata, PackageId};
-use std::path::{Path, PathBuf};
+use cargo_metadata::{DepKindInfo, DependencyKind, Metadata, PackageId};
+use std::path::PathBuf;
 
 pub struct Package {
     pub name: String,
@@ -27,15 +28,17 @@ impl From<cargo_metadata::Package> for Package {
     }
 }
 
-pub fn dependencies(
-    project_directory: &Path,
-    excluded: &[String],
-) -> anyhow::Result<impl Iterator<Item = Package>> {
+pub fn dependencies(args: &Arguments) -> anyhow::Result<impl Iterator<Item = Package>> {
     let metadata = cargo_metadata::MetadataCommand::new()
-        .current_dir(project_directory)
+        .current_dir(&args.project_directory)
         .exec()
         .context("failed to execute cargo metadata")?;
-    let included = included_ids(&metadata, &excluded_ids(&metadata, excluded));
+    let included = included_ids(
+        &metadata,
+        &excluded_ids(&metadata, &args.excluded),
+        args.build_dependencies,
+        args.dev_dependencies,
+    );
     Ok(metadata
         .packages
         .into_iter()
@@ -52,7 +55,12 @@ fn excluded_ids<'m>(metadata: &'m Metadata, excluded: &[String]) -> Vec<&'m Pack
         .collect()
 }
 
-fn included_ids(metadata: &Metadata, excluded: &[&PackageId]) -> Vec<PackageId> {
+fn included_ids(
+    metadata: &Metadata,
+    excluded: &[&PackageId],
+    build_dependencies: bool,
+    dev_dependencies: bool,
+) -> Vec<PackageId> {
     let mut unvisited: Vec<_> = metadata
         .workspace_members
         .iter()
@@ -66,8 +74,10 @@ fn included_ids(metadata: &Metadata, excluded: &[&PackageId]) -> Vec<PackageId> 
                 .iter()
                 .find(|package| package.id == *package_id)
                 .unwrap()
-                .dependencies
+                .deps
                 .iter()
+                .filter(|dep| is_included(&dep.dep_kinds, build_dependencies, dev_dependencies))
+                .map(|dep| &dep.pkg)
                 .filter(|id| !excluded.contains(id))
                 .filter(|id| !included.contains(*id)),
         );
@@ -76,4 +86,16 @@ fn included_ids(metadata: &Metadata, excluded: &[&PackageId]) -> Vec<PackageId> 
         }
     }
     included
+}
+
+fn is_included(
+    kind_info: &[DepKindInfo],
+    build_dependencies: bool,
+    dev_dependencies: bool,
+) -> bool {
+    kind_info.iter().map(|k| k.kind).any(|kind| match kind {
+        DependencyKind::Build => build_dependencies,
+        DependencyKind::Development => dev_dependencies,
+        _ => true,
+    })
 }

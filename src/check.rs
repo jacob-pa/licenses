@@ -8,8 +8,7 @@ use std::process::ExitCode;
 
 pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     let mut reporter = crate::report::Reporter::new(args);
-    let dependencies: Vec<_> =
-        crate::package::dependencies(&args.project_directory, &args.excluded)?.collect();
+    let dependencies: Vec<_> = crate::package::dependencies(&args)?.collect();
     let licenses = crate::local::output_folder_licenses(&args.output_directory);
     let (missing, unexpected) = missing_or_unexpected_licenses(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;

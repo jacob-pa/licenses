@@ -39,6 +39,10 @@ struct Arguments {
     #[clap(short, long, default_value = "auto")]
     search_remote: SearchRemote,
     #[clap(short, long, default_value = "false")]
+    build_dependencies: bool,
+    #[clap(short, long, default_value = "false")]
+    dev_dependencies: bool,
+    #[clap(short, long, default_value = "false")]
     quiet: bool,
     #[clap(short = 'w', long, default_value = "false")]
     error_on_warning: bool,
