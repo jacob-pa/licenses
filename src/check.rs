@@ -16,58 +16,65 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
 
     report_if_any(
         |m| reporter.error(m),
-        &missing,
-        String::to_string,
+        missing,
+        |l| l.to_string(),
         "dependencies without any licenses",
     );
 
     report_if_any(
         |m| reporter.error(m),
-        &packages_with_unmet_spdx(&dependencies, &licenses),
-        String::to_string,
+        packages_with_unmet_spdx(&dependencies, &licenses),
+        |l| l.to_string(),
         "packages without licenses required by their Cargo.toml package.license field",
     );
 
     report_if_any(
         |m| reporter.error(m),
-        &copy_left_licenses(&licenses),
+        copy_left_licenses(&licenses),
         |l| l.license.file_name(),
         "files with at least one copy-left license",
     );
 
     report_if_any(
         |m| reporter.warning(m),
-        &unknown_license_types(&licenses),
+        unknown_license_types(&licenses),
         |l| l.license.file_name(),
         "license files types with unknown types",
     );
 
     report_if_any(
+        |m| reporter.warning(m),
+        misnamed_licenses(&licenses),
+        misnamed_report,
+        "license files with suggested types from their name that don't contents",
+    );
+
+    report_if_any(
         |m| reporter.info(m),
-        &extraneous_licenses(&dependencies, &licenses),
-        String::to_string,
+        extraneous_licenses(&dependencies, &licenses),
+        |l| l.to_string(),
         "licenses which are not required according to dependency Cargo.toml files",
     );
 
     report_if_any(
         |m| reporter.info(m),
-        &unexpected,
-        String::to_string,
+        unexpected,
+        |l| l.to_string(),
         "license files from packages that are not dependencies",
     );
 
     Ok(reporter.exit_code())
 }
 
-fn report_if_any<F, T, I>(report: F, items: &[T], item_to_string: I, message: &str)
+fn report_if_any<F, T, I>(report: F, items: Vec<T>, item_to_string: I, message: &str)
 where
     F: FnOnce(String),
-    I: Fn(&T) -> String,
+    I: Fn(T) -> String,
 {
     if items.is_empty() {
         return;
     }
-    let mut strings: Vec<_> = items.iter().map(item_to_string).collect();
+    let mut strings: Vec<_> = items.into_iter().map(item_to_string).collect();
     strings.sort();
     report(format!(
         "{} {}: {}",
@@ -192,4 +199,34 @@ fn minimal_requirements<'a>(
         Ok(requirements) => Some(requirements.iter().filter_map(|l| l.license.id()).collect()),
         Err(_) => None,
     }
+}
+
+fn misnamed_licenses<'a>(licenses: &'a [IdentifiedLicense<'a>]) -> Vec<&'a IdentifiedLicense<'a>> {
+    licenses
+        .iter()
+        .filter(|l| match l.id_from_name {
+            Some(id) if !l.ids_from_content.is_empty() => !l.ids_from_content.contains(&id),
+            _ => false,
+        })
+        .collect()
+}
+
+fn misnamed_report(l: &IdentifiedLicense) -> String {
+    let file_name_id = l
+        .id_from_name
+        .as_ref()
+        .map(|i| i.base())
+        .unwrap_or("<unknown>");
+    let content_ids = l
+        .ids_from_content
+        .iter()
+        .map(|i| i.base().to_string())
+        .collect::<Vec<String>>()
+        .join(", ");
+    format!(
+        "{} ({} vs {})",
+        l.license.file_name(),
+        file_name_id,
+        content_ids
+    )
 }
