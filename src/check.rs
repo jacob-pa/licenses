@@ -12,20 +12,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
         crate::package::dependencies(&args.project_directory, &args.excluded)?.collect();
     let licenses = crate::local::output_folder_licenses(&args.output_directory);
     let (missing, unexpected) = missing_or_unexpected_licenses(&dependencies, &licenses);
-    dbg!(
-        licenses
-            .iter()
-            .filter(|l| l.package == "anyhow")
-            .collect::<Vec<_>>()
-    );
     let licenses = crate::identity::identified_licenses(&licenses)?;
-    dbg!(
-        licenses
-            .iter()
-            .filter(|l| l.license.package == "anyhow")
-            .collect::<Vec<_>>()
-    );
-
     report_if_any(
         |m| reporter.error(m),
         missing,
