@@ -14,7 +14,9 @@ spdx = { version = "*", features = ["detection-parallel", "detection", "detectio
 rayon = "*"
 indicatif = { version = "*", features = ["rayon"] }
 colored = "*"
-toml_edit = "*"
+tabled = "*"
+itertools = "*"
+terminal_size = "*"
 
 [dev-dependencies]
 tempfile = "*"

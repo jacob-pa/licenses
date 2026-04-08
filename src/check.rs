@@ -13,6 +13,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     let licenses = crate::local::output_folder_licenses(&args.output_directory);
     let (missing, unexpected) = missing_or_unexpected_licenses(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
+
     report_if_any(
         |m| reporter.error(m),
         missing,

@@ -7,6 +7,7 @@ mod local;
 mod package;
 mod remote;
 mod report;
+mod summary;
 
 use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
@@ -16,6 +17,7 @@ fn main() -> anyhow::Result<ExitCode> {
     match Command::parse() {
         Command::Get(args) => get::get(&args),
         Command::Check(args) => check::check(&args),
+        Command::Summary(args) => summary::summary(&args),
     }
 }
 
@@ -23,6 +25,7 @@ fn main() -> anyhow::Result<ExitCode> {
 enum Command {
     Get(Arguments),
     Check(Arguments),
+    Summary(Arguments),
 }
 
 #[derive(Parser)]
