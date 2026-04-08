@@ -13,10 +13,6 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     let licenses = crate::local::output_folder_licenses(&args.output_directory);
     let (missing, unexpected) = missing_or_unexpected_licenses(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
-    let unknown = unknown_license_types(&licenses);
-    let copy_left = copy_left_licenses(&licenses);
-    let unmet_spdx = packages_with_unmet_spdx(&dependencies, &licenses);
-    let extraneous = extraneous_licenses(&dependencies, &licenses);
 
     report_if_any(
         |m| reporter.error(m),
@@ -27,28 +23,28 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
 
     report_if_any(
         |m| reporter.error(m),
-        &unmet_spdx,
+        &packages_with_unmet_spdx(&dependencies, &licenses),
         String::to_string,
         "packages without licenses required by their Cargo.toml package.license field",
     );
 
     report_if_any(
         |m| reporter.error(m),
-        &copy_left,
-        String::to_string,
+        &copy_left_licenses(&licenses),
+        |l| l.license.file_name(),
         "files with at least one copy-left license",
     );
 
     report_if_any(
         |m| reporter.warning(m),
-        &unknown,
-        String::to_string,
+        &unknown_license_types(&licenses),
+        |l| l.license.file_name(),
         "license files types with unknown types",
     );
 
     report_if_any(
         |m| reporter.info(m),
-        &extraneous,
+        &extraneous_licenses(&dependencies, &licenses),
         String::to_string,
         "licenses which are not required according to dependency Cargo.toml files",
     );
@@ -101,19 +97,17 @@ fn missing_or_unexpected_licenses(
     (missing, unexpected)
 }
 
-fn unknown_license_types(licenses: &[IdentifiedLicense]) -> Vec<String> {
+fn unknown_license_types<'a>(licenses: &'a [IdentifiedLicense]) -> Vec<&'a IdentifiedLicense<'a>> {
     licenses
         .iter()
         .filter(|l| l.ids().next().is_none())
-        .map(|l| l.license.file_name())
         .collect()
 }
 
-fn copy_left_licenses(licenses: &[IdentifiedLicense]) -> Vec<String> {
+fn copy_left_licenses<'a>(licenses: &'a [IdentifiedLicense]) -> Vec<&'a IdentifiedLicense<'a>> {
     licenses
         .iter()
         .filter(|l| l.ids().any(|l| l.is_copyleft()))
-        .map(|l| l.license.file_name())
         .collect()
 }
 
@@ -167,18 +161,20 @@ fn extraneous_package_licenses<'a>(
         .iter()
         .filter(|l| l.license.package == package.name)
         .collect();
-    let required = minimal_requirements(expression, &package_licenses);
-    package_licenses
-        .into_iter()
-        .filter(|l| !required.iter().any(|r| r.name != l.license.name))
-        .map(|l| format!("{} (not {})", l.license.file_name(), expression))
-        .collect()
+    match minimal_requirements(expression, &package_licenses) {
+        Some(required) => package_licenses
+            .into_iter()
+            .filter(|l| !required.iter().any(|r| r.name != l.license.name))
+            .map(|l| format!("{} (not {})", l.license.file_name(), expression))
+            .collect(),
+        None => Vec::new(),
+    }
 }
 
 fn minimal_requirements<'a>(
     expression: &spdx::Expression,
     licenses: &[&IdentifiedLicense<'a>],
-) -> Vec<LicenseId> {
+) -> Option<Vec<LicenseId>> {
     let licensee: Vec<_> = licenses
         .iter()
         .flat_map(|l| l.ids())
@@ -192,10 +188,8 @@ fn minimal_requirements<'a>(
             )
         })
         .collect();
-    expression
-        .minimized_requirements(licensee.iter())
-        .into_iter()
-        .flatten()
-        .filter_map(|l| l.license.id())
-        .collect()
+    match expression.minimized_requirements(licensee.iter()) {
+        Ok(requirements) => Some(requirements.iter().filter_map(|l| l.license.id()).collect()),
+        Err(_) => None,
+    }
 }
