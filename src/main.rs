@@ -2,11 +2,13 @@ mod check;
 mod dependency;
 mod get;
 mod identity;
+mod interrupt;
 mod license;
 mod local;
 mod package;
 mod remote;
 mod report;
+mod review;
 mod summary;
 
 use clap::{Parser, ValueEnum};
@@ -18,6 +20,7 @@ fn main() -> anyhow::Result<ExitCode> {
         Command::Get(args) => get::get(&args),
         Command::Check(args) => check::check(&args),
         Command::Summary(args) => summary::summary(&args),
+        Command::Review(args) => review::review(&args),
     }
 }
 
@@ -26,6 +29,7 @@ enum Command {
     Get(Arguments),
     Check(Arguments),
     Summary(Arguments),
+    Review(Arguments),
 }
 
 #[derive(Parser)]

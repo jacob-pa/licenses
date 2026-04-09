@@ -17,6 +17,10 @@ colored = "*"
 tabled = "*"
 itertools = "*"
 terminal_size = "*"
+crates_io_api = "*"
+serde_json = "*"
+ctrlc = "*"
+jiff = { version = "*", features = ["serde"] }
 
 [dev-dependencies]
 tempfile = "*"
