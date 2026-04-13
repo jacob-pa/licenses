@@ -8,7 +8,7 @@ use std::process::ExitCode;
 
 pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     let mut reporter = crate::report::Reporter::new(args);
-    let dependencies: Vec<_> = crate::package::dependencies(&args)?.collect();
+    let dependencies: Vec<_> = crate::package::dependencies(args)?.collect();
     let licenses = crate::local::output_folder_licenses(&args.output_directory);
     let (missing, unexpected) = missing_or_unexpected_licenses(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
@@ -33,6 +33,13 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
         |l| l.license.file_name(),
         "files with at least one copy-left license",
     );
+
+    if !dependencies.is_empty() && licenses.is_empty() {
+        reporter.warning(format!(
+            "no licenses found at all in '{}'",
+            args.output_directory.display()
+        ));
+    }
 
     report_if_any(
         |m| reporter.warning(m),
@@ -123,9 +130,11 @@ fn packages_with_unmet_spdx(
 ) -> Vec<String> {
     dependencies
         .iter()
-        .filter_map(|package| match &package.spdx_license {
-            Some(expression) => Some((package, expression)),
-            None => None,
+        .filter_map(|package| {
+            package
+                .spdx_license
+                .as_ref()
+                .map(|expression| (package, expression))
         })
         .filter(|(package, expression)| !spdx_requirements_met(&package.name, expression, licenses))
         .map(|(package, expression)| format!("{} ({})", package.name, expression))
@@ -148,9 +157,11 @@ fn spdx_requirements_met(
 fn extraneous_licenses(dependencies: &[Package], licenses: &[IdentifiedLicense]) -> Vec<String> {
     dependencies
         .iter()
-        .filter_map(|package| match &package.spdx_license {
-            Some(expression) => Some((package, expression)),
-            None => None,
+        .filter_map(|package| {
+            package
+                .spdx_license
+                .as_ref()
+                .map(|expression| (package, expression))
         })
         .flat_map(|(package, expression)| {
             extraneous_package_licenses(package, expression, licenses)

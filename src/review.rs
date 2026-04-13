@@ -13,7 +13,7 @@ pub fn review(args: &Arguments) -> anyhow::Result<ExitCode> {
     let interrupt = Interrupt::setup()?;
     let metadata_file = args.output_directory.join(".metadata.json");
     let metadata = load_from_file(&metadata_file)?;
-    let dependencies: Vec<_> = crate::package::dependencies(&args)?.collect();
+    let dependencies: Vec<_> = crate::package::dependencies(args)?.collect();
     let missing_deps = missing_dependencies(&metadata, dependencies);
     let new_metadata = fetch_missing_metadata(interrupt, metadata.len(), missing_deps)?;
     write_to_file(&combine_metadata(metadata, new_metadata), &metadata_file)?;
@@ -79,7 +79,7 @@ fn crate_metadata(client: &SyncClient, name: &str) -> anyhow::Result<CrateMetada
 }
 
 fn combine_metadata(old: Metadata, new: Metadata) -> Metadata {
-    old.into_iter().chain(new.into_iter()).collect()
+    old.into_iter().chain(new).collect()
 }
 
 fn write_to_file(metadata: &Metadata, path: &Path) -> anyhow::Result<()> {

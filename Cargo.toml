@@ -24,6 +24,3 @@ jiff = { version = "*", features = ["serde"] }
 
 [dev-dependencies]
 tempfile = "*"
-
-[lints.clippy]
-print_stdout = "deny"

@@ -33,8 +33,12 @@ pub fn package_local_licenses(package: &Package) -> Vec<Local> {
 }
 
 pub fn output_folder_licenses(project_folder: &Path) -> Vec<Local> {
-    std::fs::read_dir(project_folder)
-        .expect("failed to read directory")
+    let entries = match std::fs::read_dir(project_folder) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Vec::new(),
+        Err(error) => panic!("failed to read directory: {}", error),
+    };
+    entries
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
         .filter_map(|path| {

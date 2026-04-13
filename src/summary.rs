@@ -67,12 +67,12 @@ fn license_type_summary(license_type: &str, licenses: &[IdentifiedLicense]) -> L
 fn unknown_license_type_summary(licenses: &[IdentifiedLicense]) -> LicenseSummary {
     let is_license_type = move |l: &&IdentifiedLicense| l.ids().next().is_none();
     let no_other_licenses = |package: &str| {
-        !licenses
+        licenses
             .iter()
             .filter(|l| l.license.package == package)
             .flat_map(|l| l.ids())
             .next()
-            .is_some()
+            .is_none()
     };
     let packages: Vec<_> = licenses
         .iter()

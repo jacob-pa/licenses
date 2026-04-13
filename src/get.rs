@@ -6,7 +6,7 @@ use std::process::ExitCode;
 
 pub fn get(args: &Arguments) -> anyhow::Result<ExitCode> {
     let mut reporter = crate::report::Reporter::new(args);
-    let deps = dependency::dependencies(&args)?;
+    let deps = dependency::dependencies(args)?;
     let no_licenses = dependencies_with_no_licenses(&deps);
     if !no_licenses.is_empty() {
         reporter.warning(format!(

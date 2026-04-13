@@ -38,7 +38,7 @@ fn identify_license<'a>(
     license: &'a Local,
 ) -> anyhow::Result<IdentifiedLicense<'a>> {
     Ok(IdentifiedLicense {
-        id_from_name: id_from_name(&license),
+        id_from_name: id_from_name(license),
         ids_from_content: ids_from_content(scanner, license)?,
         license,
     })
