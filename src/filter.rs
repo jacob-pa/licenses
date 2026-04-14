@@ -1,21 +1,27 @@
 use crate::lint::{Level, Report};
 use crate::{Arguments, Lint};
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 pub struct FilterRules {
-    allow: HashSet<Lint>,
+    lint_level: HashMap<Lint, Level>,
 }
 
 impl FilterRules {
     pub fn new(args: &Arguments) -> Self {
         Self {
-            allow: args.allow.iter().map(|f| f.lint).collect(),
+            lint_level: args
+                .allow
+                .iter()
+                .map(|lint| (*lint, Level::Info))
+                .chain(args.warn.iter().map(|lint| (*lint, Level::Warning)))
+                .chain(args.deny.iter().map(|lint| (*lint, Level::Error)))
+                .collect(),
         }
     }
 
     pub fn filter(&self, mut report: Report) -> Option<Report> {
-        if self.allow.contains(&report.lint) {
-            report.level = Level::Info;
+        if let Some(level) = self.lint_level.get(&report.lint) {
+            report.level = *level;
         }
         Some(report)
     }

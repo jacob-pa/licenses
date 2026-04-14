@@ -16,7 +16,6 @@ mod summary;
 use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
 use std::process::ExitCode;
-use std::str::FromStr;
 
 fn main() -> anyhow::Result<ExitCode> {
     match Command::parse() {
@@ -56,18 +55,21 @@ struct Arguments {
     #[clap(short, long, default_value = "false")]
     /// Include dependencies only used during build
     build_dependencies: bool,
-    #[clap(short, long, default_value = "false")]
+    #[clap(short = 'v', long, default_value = "false")]
     /// Include dependencies only used during dev (testing)
     dev_dependencies: bool,
     #[clap(short, long, default_value = "false")]
     /// Do not print any logging to stderr
     quiet: bool,
-    #[clap(short = 'w', long, default_value = "false")]
-    /// Report all warnings as errors, including exiting with a non-zero exit code
-    error_on_warning: bool,
-    #[clap(short, long, value_name = "LINT_NAME[:SPECIFIC_ITEM]")]
-    /// Always allow violations of this specific lint (optionally scoped to just the specific instance)
-    allow: Vec<Filter>,
+    #[clap(short, long)]
+    /// Allow violations of this specific lint, reporting as info only.
+    allow: Vec<Lint>,
+    #[clap(short, long)]
+    /// Warn on violations of this specific lint. Override allow if set.
+    warn: Vec<Lint>,
+    #[clap(short, long)]
+    /// Deny violations of this specific lint, reporting as an error. Overrides allow or warn if set.
+    deny: Vec<Lint>,
 }
 
 #[derive(ValueEnum, Clone, Copy)]
@@ -78,27 +80,6 @@ enum SearchRemote {
     Auto,
     /// always search remotely licenses, even if one or more found locally
     Always,
-}
-
-#[derive(Debug, Clone)]
-struct Filter {
-    lint: Lint,
-    sub_filter: Option<String>,
-}
-
-impl FromStr for Filter {
-    type Err = String;
-
-    fn from_str(string: &str) -> Result<Self, Self::Err> {
-        let (lint_name, sub_filter) = match string.split_once(":") {
-            Some((prefix, suffix)) => (prefix, Some(suffix.to_string())),
-            None => (string, None),
-        };
-        Ok(Self {
-            lint: Lint::from_str(lint_name, true)?,
-            sub_filter,
-        })
-    }
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum, Hash, PartialEq, Eq)]

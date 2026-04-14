@@ -1,7 +1,7 @@
+use crate::Arguments;
 use crate::lint::{
     copy_left, extraneous, misnamed, missing_or_unexpected, no_licenses, unknown_type, unmet_spdx,
 };
-use crate::{Arguments, Lint};
 use anyhow::Context;
 use std::process::ExitCode;
 

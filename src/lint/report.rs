@@ -5,7 +5,7 @@ pub struct Report {
     pub level: Level,
     pub message: String,
 }
-
+#[derive(Copy, Clone)]
 pub enum Level {
     Info,
     Warning,

@@ -5,7 +5,6 @@ use std::process::ExitCode;
 
 pub struct Reporter {
     quiet: bool,
-    error_on_warning: bool,
     errored: bool,
 }
 
@@ -13,7 +12,6 @@ impl Reporter {
     pub fn new(args: &Arguments) -> Self {
         Self {
             quiet: args.quiet,
-            error_on_warning: args.error_on_warning,
             errored: false,
         }
     }
@@ -33,9 +31,7 @@ impl Reporter {
     }
 
     pub fn warning(&mut self, message: String) {
-        if self.error_on_warning {
-            self.error(message);
-        } else if !self.quiet {
+        if !self.quiet {
             eprintln!("{}: {}", "warning".yellow().bold(), message);
         }
     }
