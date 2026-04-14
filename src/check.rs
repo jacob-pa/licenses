@@ -2,13 +2,16 @@ use crate::Arguments;
 use crate::identity::IdentifiedLicense;
 use crate::local::Local;
 use crate::package::Package;
+use anyhow::Context;
 use spdx::{LicenseId, LicenseItem, Licensee};
 use std::collections::HashSet;
 use std::process::ExitCode;
 
 pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     let mut reporter = crate::report::Reporter::new(args);
-    let dependencies: Vec<_> = crate::package::dependencies(args)?.collect();
+    let dependencies: Vec<_> = crate::package::dependencies(args)
+        .context("failed to get dependency information")?
+        .collect();
     let licenses = crate::local::output_folder_licenses(&args.output_directory);
     let (missing, unexpected) = missing_or_unexpected_licenses(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
