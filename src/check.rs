@@ -14,18 +14,18 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     let (missing, unexpected) = missing_or_unexpected(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
 
-    reporter.report(missing);
-    reporter.report(unmet_spdx(&dependencies, &licenses));
-    reporter.report(copy_left(&licenses));
-    reporter.report(no_licenses(
-        &args.license_directory,
-        &dependencies,
-        &licenses,
-    ));
-    reporter.report(unknown_type(&licenses));
-    reporter.report(misnamed(&licenses));
-    reporter.report(extraneous(&dependencies, &licenses));
-    reporter.report(unexpected);
+    [
+        missing,
+        unmet_spdx(&dependencies, &licenses),
+        copy_left(&licenses),
+        no_licenses(&args.license_directory, &dependencies, &licenses),
+        unknown_type(&licenses),
+        misnamed(&licenses),
+        extraneous(&dependencies, &licenses),
+        unexpected,
+    ]
+    .into_iter()
+    .for_each(|r| reporter.report(r));
 
     Ok(reporter.exit_code())
 }
