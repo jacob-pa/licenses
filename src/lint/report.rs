@@ -1,4 +1,5 @@
 use crate::Lint;
+use documented::DocumentedVariants;
 
 pub struct Report {
     pub lint: Lint,
@@ -12,32 +13,24 @@ pub enum Level {
     Error,
 }
 
-pub trait ReportIfAny<T> {
-    fn report_if_any(
-        self,
-        lint: Lint,
-        level: Level,
-        message: &str,
-        item_to_string: impl Fn(T) -> String,
-    ) -> Option<Report>;
+pub trait ReportIfAny {
+    fn report_if_any(self, lint: Lint, level: Level) -> Option<Report>;
 }
 
-impl<T, I> ReportIfAny<T> for I
+impl<I> ReportIfAny for I
 where
-    I: IntoIterator<Item = T>,
+    I: IntoIterator<Item = String>,
 {
-    fn report_if_any(
-        self,
-        lint: Lint,
-        level: Level,
-        message: &str,
-        item_to_string: impl Fn(T) -> String,
-    ) -> Option<Report> {
+    fn report_if_any(self, lint: Lint, level: Level) -> Option<Report> {
         let mut iterator = self.into_iter();
-        let items = std::iter::once(iterator.next()?).chain(iterator);
-        let mut strings: Vec<_> = items.map(item_to_string).collect();
+        let mut strings: Vec<_> = std::iter::once(iterator.next()?).chain(iterator).collect();
         strings.sort();
-        let message = format!("{} {}: {}", strings.len(), message, strings.join(", "));
+        let message = format!(
+            "{} {}: {}",
+            strings.len(),
+            lint.get_variant_docs(),
+            strings.join(", ")
+        );
         Some(Report {
             lint,
             level,

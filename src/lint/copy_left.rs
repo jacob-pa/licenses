@@ -6,10 +6,6 @@ pub fn copy_left(licenses: &[IdentifiedLicense]) -> Option<Report> {
     licenses
         .iter()
         .filter(|l| l.ids().any(|l| l.is_copyleft()))
-        .report_if_any(
-            Lint::CopyLeft,
-            Level::Error,
-            "files with at least one copy-left license",
-            |l| l.license.file_name(),
-        )
+        .map(|l| l.license.file_name())
+        .report_if_any(Lint::CopyLeft, Level::Error)
 }

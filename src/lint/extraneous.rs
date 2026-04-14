@@ -17,12 +17,7 @@ pub fn extraneous(dependencies: &[Package], licenses: &[IdentifiedLicense]) -> O
         .flat_map(|(package, expression)| {
             extraneous_package_licenses(package, expression, licenses)
         })
-        .report_if_any(
-            Lint::Extraneous,
-            Level::Info,
-            "licenses which are not required according to dependency Cargo.toml files",
-            |s| s,
-        )
+        .report_if_any(Lint::Extraneous, Level::Info)
 }
 
 fn extraneous_package_licenses<'a>(

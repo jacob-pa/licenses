@@ -15,12 +15,7 @@ pub fn unmet_spdx(dependencies: &[Package], licenses: &[IdentifiedLicense]) -> O
         })
         .filter(|(package, expression)| !spdx_requirements_met(&package.name, expression, licenses))
         .map(|(package, expression)| format!("{} ({})", package.name, expression))
-        .report_if_any(
-            Lint::UnmetSpdx,
-            Level::Error,
-            "packages without licenses required by their Cargo.toml package.license field",
-            |s| s,
-        )
+        .report_if_any(Lint::UnmetSpdx, Level::Error)
 }
 
 fn spdx_requirements_met(

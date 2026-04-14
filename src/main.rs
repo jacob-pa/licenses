@@ -13,6 +13,7 @@ mod reporter;
 mod review;
 mod summary;
 
+use crate::lint::Lint;
 use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -80,16 +81,4 @@ enum SearchRemote {
     Auto,
     /// always search remotely licenses, even if one or more found locally
     Always,
-}
-
-#[derive(Debug, Clone, Copy, ValueEnum, Hash, PartialEq, Eq)]
-enum Lint {
-    CopyLeft,
-    Extraneous,
-    Misnamed,
-    Missing,
-    Unexpected,
-    NoLicenses,
-    UnknownType,
-    UnmetSpdx,
 }

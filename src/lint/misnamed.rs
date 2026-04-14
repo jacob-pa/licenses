@@ -10,12 +10,8 @@ pub fn misnamed(licenses: &[IdentifiedLicense]) -> Option<Report> {
             Some(id) if !l.ids_from_content.is_empty() => !l.ids_from_content.contains(&id),
             _ => false,
         })
-        .report_if_any(
-            Lint::Misnamed,
-            Level::Warning,
-            "license files with inferred types that don't match between name vs contents",
-            display_misnamed,
-        )
+        .map(display_misnamed)
+        .report_if_any(Lint::Misnamed, Level::Warning)
 }
 
 fn display_misnamed(l: &IdentifiedLicense) -> String {
