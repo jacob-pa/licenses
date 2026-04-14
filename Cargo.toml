@@ -17,10 +17,14 @@ colored = "*"
 tabled = "*"
 itertools = "*"
 terminal_size = "*"
-crates_io_api = "*"
 serde_json = "*"
 ctrlc = "*"
 jiff = { version = "*", features = ["serde"] }
+crates_io_api = "*"
+# without the "vendored" openssl, crates_io_api drags in a version of openssl that always recompiles,
+# because it thinks PKG_CONFIG_PATH is always changing every build.
+# Even though this crate is not directly used, it forces the crates_io_api transitive dependency to also have this feature.
+openssl = { version = "*", features = ["vendored"] }
 
 [dev-dependencies]
 tempfile = "*"
