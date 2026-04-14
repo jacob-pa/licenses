@@ -7,7 +7,7 @@ use tabled::settings::peaker::Priority;
 use tabled::{Table, Tabled, settings::Style};
 
 pub fn summary(args: &Arguments) -> anyhow::Result<ExitCode> {
-    let licenses = crate::local::output_folder_licenses(&args.output_directory);
+    let licenses = crate::local::output_folder_licenses(&args.license_directory);
     let licenses = crate::identity::identified_licenses(&licenses)?;
     let license_types = unique_license_types(&licenses);
     let summaries: Vec<_> = license_types

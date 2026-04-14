@@ -43,7 +43,7 @@ struct Arguments {
     project_directory: PathBuf,
     #[clap(short, long, default_value = "./licenses/")]
     /// Path to the folder to store license files
-    output_directory: PathBuf,
+    license_directory: PathBuf,
     #[clap(short, long)]
     /// Package names to exclude from searching for license files (and their dependencies)
     excluded: Vec<String>,

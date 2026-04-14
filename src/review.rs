@@ -11,7 +11,7 @@ use url::Url;
 
 pub fn review(args: &Arguments) -> anyhow::Result<ExitCode> {
     let interrupt = Interrupt::setup()?;
-    let metadata_file = args.output_directory.join(".metadata.json");
+    let metadata_file = args.license_directory.join(".metadata.json");
     let metadata = load_from_file(&metadata_file)?;
     let dependencies: Vec<_> = crate::package::dependencies(args)?.collect();
     let missing_deps = missing_dependencies(&metadata, dependencies);

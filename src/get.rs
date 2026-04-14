@@ -15,7 +15,7 @@ pub fn get(args: &Arguments) -> anyhow::Result<ExitCode> {
             no_licenses.join(", ")
         ));
     }
-    std::fs::create_dir_all(&args.output_directory)?;
+    std::fs::create_dir_all(&args.license_directory)?;
     for dependency in deps.iter().progress_count(deps.len() as u64) {
         copy_local(args, dependency)?;
         copy_remote(args, dependency)?;
@@ -47,7 +47,7 @@ fn copy_local(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
     for license in &dependency.local_licenses {
         std::fs::copy(
             &license.location,
-            output_file(&args.output_directory, dependency, &license.name),
+            output_file(&args.license_directory, dependency, &license.name),
         )?;
     }
     Ok(())
@@ -55,7 +55,7 @@ fn copy_local(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
 
 fn copy_remote(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
     for license in &dependency.remote_licenses {
-        let output_path = output_file(&args.output_directory, dependency, &license.name);
+        let output_path = output_file(&args.license_directory, dependency, &license.name);
         remote::download(&license.location, &output_path)?;
     }
     Ok(())

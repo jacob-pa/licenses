@@ -12,7 +12,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     let dependencies: Vec<_> = crate::package::dependencies(args)
         .context("failed to get dependency information")?
         .collect();
-    let licenses = crate::local::output_folder_licenses(&args.output_directory);
+    let licenses = crate::local::output_folder_licenses(&args.license_directory);
     let (missing, unexpected) = missing_or_unexpected_licenses(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
 
@@ -40,7 +40,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     if !dependencies.is_empty() && licenses.is_empty() {
         reporter.warning(format!(
             "no licenses found at all in '{}'",
-            args.output_directory.display()
+            args.license_directory.display()
         ));
     }
 
