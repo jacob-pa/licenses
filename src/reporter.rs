@@ -1,4 +1,5 @@
 use crate::Arguments;
+use crate::lint::{Level, Report};
 use colored::Colorize;
 use std::process::ExitCode;
 
@@ -14,6 +15,16 @@ impl Reporter {
             quiet: args.quiet,
             error_on_warning: args.error_on_warning,
             errored: false,
+        }
+    }
+
+    pub fn report(&mut self, report: Option<Report>) {
+        if let Some(report) = report {
+            match report.level {
+                Level::Info => self.info(report.message),
+                Level::Warning => self.warning(report.message),
+                Level::Error => self.error(report.message),
+            }
         }
     }
 

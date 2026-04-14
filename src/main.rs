@@ -4,10 +4,11 @@ mod get;
 mod identity;
 mod interrupt;
 mod license;
+mod lint;
 mod local;
 mod package;
 mod remote;
-mod report;
+mod reporter;
 mod review;
 mod summary;
 
