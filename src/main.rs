@@ -3,14 +3,12 @@ mod dependency;
 mod filter;
 mod get;
 mod identity;
-mod interrupt;
 mod license;
 mod lint;
 mod local;
 mod package;
 mod remote;
 mod reporter;
-mod review;
 mod summary;
 
 use crate::lint::Lint;
@@ -24,7 +22,6 @@ fn main() -> anyhow::Result<ExitCode> {
         Command::Get(args) => get::get(&args),
         Command::Check(args) => check::check(&args),
         Command::Summary(args) => summary::summary(&args),
-        Command::Review(args) => review::review(&args),
     }
 }
 
@@ -37,7 +34,6 @@ enum Command {
     Check(Arguments),
     /// Print a table to the terminal displaying a summary of dependency licenses
     Summary(Arguments),
-    Review(Arguments),
 }
 
 #[derive(Parser)]
