@@ -1,11 +1,11 @@
 use crate::dependency::Dependency;
-use crate::{Arguments, dependency, remote};
+use crate::{GetArguments, dependency, remote};
 use indicatif::ProgressIterator;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-pub fn get(args: &Arguments) -> anyhow::Result<ExitCode> {
-    let mut reporter = crate::reporter::Reporter::new(args);
+pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
+    let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
     let deps = dependency::dependencies(args)?;
     let no_licenses = dependencies_with_no_licenses(&deps);
     if !no_licenses.is_empty() {
@@ -15,7 +15,7 @@ pub fn get(args: &Arguments) -> anyhow::Result<ExitCode> {
             no_licenses.join(", ")
         ));
     }
-    std::fs::create_dir_all(&args.license_directory)?;
+    std::fs::create_dir_all(&args.common.license_directory)?;
     for dependency in deps.iter().progress_count(deps.len() as u64) {
         copy_local(args, dependency)?;
         copy_remote(args, dependency)?;
@@ -43,19 +43,19 @@ fn dependencies_with_no_licenses(dependencies: &[Dependency]) -> Vec<String> {
         .collect()
 }
 
-fn copy_local(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
+fn copy_local(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<()> {
     for license in &dependency.local_licenses {
         std::fs::copy(
             &license.location,
-            output_file(&args.license_directory, dependency, &license.name),
+            output_file(&args.common.license_directory, dependency, &license.name),
         )?;
     }
     Ok(())
 }
 
-fn copy_remote(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
+fn copy_remote(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<()> {
     for license in &dependency.remote_licenses {
-        let output_path = output_file(&args.license_directory, dependency, &license.name);
+        let output_path = output_file(&args.common.license_directory, dependency, &license.name);
         remote::download(&license.location, &output_path)?;
     }
     Ok(())

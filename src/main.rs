@@ -29,11 +29,37 @@ fn main() -> anyhow::Result<ExitCode> {
 /// A command line too for collecting and checking your dependency licenses
 enum Command {
     /// Collect all dependency licenses into a folder, search on disk or remotely
-    Get(Arguments),
+    Get(GetArguments),
     /// Check licenses in folder against dependencies, and report any warnings or errors
-    Check(Arguments),
+    Check(CheckArguments),
     /// Print a table to the terminal displaying a summary of dependency licenses
     Summary(Arguments),
+}
+
+#[derive(Parser)]
+struct GetArguments {
+    #[clap(flatten)]
+    common: Arguments,
+
+    #[clap(short, long, default_value = "auto")]
+    /// Whether to only search on disk or also remotely on github.com
+    search_remote: SearchRemote,
+}
+
+#[derive(Parser)]
+struct CheckArguments {
+    #[clap(flatten)]
+    common: Arguments,
+
+    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
+    /// Allow violations of this specific lint, reporting as info only. Sub filters always override non-sub ones.
+    allow: Vec<Filter>,
+    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
+    /// Warn on violations of this specific lint. Override allow if set. Sub filters always override non-sub ones.
+    warn: Vec<Filter>,
+    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
+    /// Deny violations of this specific lint, reporting as an error. Overrides allow or warn if set. Sub filters always override non-sub ones.
+    deny: Vec<Filter>,
 }
 
 #[derive(Parser)]
@@ -47,9 +73,6 @@ struct Arguments {
     #[clap(short, long)]
     /// Package names to exclude from searching for license files (and their dependencies)
     excluded: Vec<String>,
-    #[clap(short, long, default_value = "auto")]
-    /// Whether to only search on disk or also remotely on github.com
-    search_remote: SearchRemote,
     #[clap(short, long, default_value = "false")]
     /// Include dependencies only used during build
     build_dependencies: bool,
@@ -59,15 +82,6 @@ struct Arguments {
     #[clap(short, long, default_value = "false")]
     /// Do not print any logging to stderr
     quiet: bool,
-    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
-    /// Allow violations of this specific lint, reporting as info only. Sub filters always override non-sub ones.
-    allow: Vec<Filter>,
-    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
-    /// Warn on violations of this specific lint. Override allow if set. Sub filters always override non-sub ones.
-    warn: Vec<Filter>,
-    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
-    /// Deny violations of this specific lint, reporting as an error. Overrides allow or warn if set. Sub filters always override non-sub ones.
-    deny: Vec<Filter>,
 }
 
 #[derive(ValueEnum, Clone, Copy)]

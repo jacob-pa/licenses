@@ -1,4 +1,3 @@
-use crate::Arguments;
 use crate::lint::{CombinedReport, Level};
 use colored::Colorize;
 use std::process::ExitCode;
@@ -9,9 +8,9 @@ pub struct Reporter {
 }
 
 impl Reporter {
-    pub fn new(args: &Arguments) -> Self {
+    pub fn new(quiet: bool) -> Self {
         Self {
-            quiet: args.quiet,
+            quiet,
             errored: false,
         }
     }

@@ -1,4 +1,4 @@
-use crate::Arguments;
+use crate::CheckArguments;
 use crate::lint::{
     CombineReports, copy_left, extraneous, misnamed, missing_or_unexpected, no_licenses,
     unknown_type, unmet_spdx,
@@ -6,13 +6,13 @@ use crate::lint::{
 use anyhow::Context;
 use std::process::ExitCode;
 
-pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
+pub fn check(args: &CheckArguments) -> anyhow::Result<ExitCode> {
     let filter_rules = crate::filter::FilterRules::new(args);
-    let mut reporter = crate::reporter::Reporter::new(args);
-    let dependencies: Vec<_> = crate::package::dependencies(args)
+    let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
+    let dependencies: Vec<_> = crate::package::dependencies(&args.common)
         .context("failed to get dependency information")?
         .collect();
-    let licenses = crate::local::output_folder_licenses(&args.license_directory);
+    let licenses = crate::local::output_folder_licenses(&args.common.license_directory);
     let (missing, unexpected) = missing_or_unexpected(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
 
@@ -21,7 +21,7 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
         .chain(unmet_spdx(&dependencies, &licenses))
         .chain(copy_left(&licenses))
         .chain(no_licenses(
-            &args.license_directory,
+            &args.common.license_directory,
             &dependencies,
             &licenses,
         ))
