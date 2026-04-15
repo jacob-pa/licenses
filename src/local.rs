@@ -15,12 +15,12 @@ impl License<PathBuf> {
     }
 }
 
-pub fn package_local_licenses(package: &Package) -> Vec<Local> {
+pub fn package_local_licenses(keywords: &[String], package: &Package) -> Vec<Local> {
     std::fs::read_dir(&package.project_folder)
         .expect("failed to read directory")
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
-        .filter(is_license)
+        .filter(|path| is_license(keywords, path))
         .map(|path| {
             let name = path.file_name().unwrap().to_str().unwrap().to_string();
             Local {
@@ -53,9 +53,9 @@ pub fn output_folder_licenses(project_folder: &Path) -> Vec<Local> {
 }
 
 #[allow(clippy::ptr_arg)]
-fn is_license(path: &PathBuf) -> bool {
+fn is_license(keywords: &[String], path: &PathBuf) -> bool {
     path.file_name()
         .and_then(|name| name.to_str())
-        .map(license::is_license)
+        .map(|name| license::is_license(keywords, name))
         .unwrap_or(false)
 }

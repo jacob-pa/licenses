@@ -7,6 +7,7 @@ use url::Url;
 pub type Remote = License<Url>;
 
 pub fn package_remote_licenses(
+    keywords: &[String],
     package: &str,
     repo_url: &str,
 ) -> anyhow::Result<impl Iterator<Item = Remote>> {
@@ -18,7 +19,7 @@ pub fn package_remote_licenses(
         .into_body()
         .read_json::<Vec<GithubFileInfo>>()?
         .into_iter()
-        .filter(|file| is_license(&file.name))
+        .filter(|file| is_license(keywords, &file.name))
         .map(|file| Remote {
             package: package.to_string(),
             location: file.download_url.unwrap(),

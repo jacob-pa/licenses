@@ -44,6 +44,14 @@ struct GetArguments {
     #[clap(short, long, default_value = "auto")]
     /// Whether to only search on disk or also remotely on github.com
     search_remote: SearchRemote,
+
+    #[clap(
+        short,
+        long,
+        default_values_t = ["license", "copying", "author", "copyright", "notice"].into_iter().map(|s| s.to_string()).collect::<Vec<_>>()
+    )]
+    /// Keywords to search for in file name to identify license files
+    keywords: Vec<String>,
 }
 
 #[derive(Parser)]

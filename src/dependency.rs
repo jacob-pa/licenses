@@ -11,16 +11,17 @@ pub struct Dependency {
 
 pub fn dependencies(args: &GetArguments) -> anyhow::Result<Vec<Dependency>> {
     package::dependencies(&args.common)?
-        .map(|package| package_to_dependency(package, args.search_remote))
+        .map(|package| package_to_dependency(args.search_remote, &args.keywords, package))
         .collect()
 }
 
 fn package_to_dependency(
-    package: Package,
     search_remote: SearchRemote,
+    keywords: &[String],
+    package: Package,
 ) -> anyhow::Result<Dependency> {
-    let local: Vec<_> = local::package_local_licenses(&package);
-    let remote = remote_licenses(&package, &local, search_remote)?;
+    let local: Vec<_> = local::package_local_licenses(keywords, &package);
+    let remote = remote_licenses(search_remote, keywords, &package, &local)?;
     Ok(Dependency {
         name: package.name,
         local_licenses: local,
@@ -29,14 +30,15 @@ fn package_to_dependency(
 }
 
 fn remote_licenses(
+    search_remote: SearchRemote,
+    keywords: &[String],
     package: &Package,
     local: &[Local],
-    search_remote: SearchRemote,
 ) -> anyhow::Result<Vec<Remote>> {
     if let Some(repo_url) = &package.repository
         && should_search_remote(local, search_remote)
     {
-        Ok(remote::package_remote_licenses(&package.name, repo_url)?.collect())
+        Ok(remote::package_remote_licenses(keywords, &package.name, repo_url)?.collect())
     } else {
         Ok(Vec::new())
     }
