@@ -8,6 +8,7 @@ mod local;
 mod metadata;
 mod package;
 mod package_licenses;
+mod prune;
 mod remote;
 mod report;
 mod reporter;
@@ -24,6 +25,7 @@ fn main() -> anyhow::Result<ExitCode> {
         Command::Get(args) => get::get(&args),
         Command::Check(args) => check::check(&args),
         Command::Summary(args) => summary::summary(&args),
+        Command::Prune(args) => prune::prune(&args),
     }
 }
 
@@ -36,6 +38,8 @@ enum Command {
     Check(CheckArguments),
     /// Print a table to the terminal displaying a summary of dependency licenses
     Summary(Arguments),
+    /// Prune the set of license files in the license folder to the minimum that the dependencies require
+    Prune(PruneArguments),
 }
 
 #[derive(Parser)]
@@ -70,6 +74,15 @@ struct CheckArguments {
     #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
     /// Deny violations of this specific lint, reporting as an error. Overrides allow or warn if set. Sub filters always override non-sub ones.
     deny: Vec<Filter>,
+}
+
+#[derive(Parser)]
+struct PruneArguments {
+    #[clap(flatten)]
+    common: Arguments,
+
+    // License names in preference order to keep. If not set, will arbitrarily prefer alphabetical (e.g. Apache-2.0 > MIT > Unlicense).
+    licenses: Vec<spdx::Licensee>,
 }
 
 #[derive(Parser)]

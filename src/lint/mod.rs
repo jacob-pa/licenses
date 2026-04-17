@@ -50,6 +50,6 @@ pub enum Lint {
     UnknownType,
     /// Packages without licenses required by their Cargo.toml package.license field
     UnmetSpdx,
-    /// The root package does not have the "license" field set in the Cargo.toml
+    /// The root package does not have "license" field set in the Cargo.toml
     NoCargoLicense,
 }
