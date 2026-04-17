@@ -15,7 +15,7 @@ pub fn check(args: &CheckArguments) -> anyhow::Result<ExitCode> {
     let (missing, unexpected) = missing_or_unexpected(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
 
-    missing
+    let mut reports: Vec<_> = missing
         .into_iter()
         .chain(unmet_spdx(&dependencies, &licenses))
         .chain(copy_left(&licenses))
@@ -30,7 +30,11 @@ pub fn check(args: &CheckArguments) -> anyhow::Result<ExitCode> {
         .chain(unexpected)
         .filter_map(|r| filter_rules.filter(r))
         .combine_reports()
-        .for_each(|r| reporter.report(r));
+        .collect();
+
+    reports.sort_by_key(|r| (r.level, r.lint));
+
+    reports.into_iter().for_each(|r| reporter.report(r));
 
     Ok(reporter.exit_code())
 }

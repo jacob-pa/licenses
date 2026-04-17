@@ -26,6 +26,8 @@ pub use unmet_spdx::unmet_spdx;
     Hash,
     PartialEq,
     Eq,
+    Ord,
+    PartialOrd,
     documented::DocumentedVariants,
 )]
 #[serde(rename_all = "kebab-case")]

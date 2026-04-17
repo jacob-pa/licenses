@@ -27,7 +27,8 @@ impl Display for CombinedReport {
     }
 }
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
+// NOTE variant order is important for PartialOrd
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Ord, PartialOrd)]
 pub enum Level {
     Info,
     Warning,
