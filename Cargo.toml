@@ -2,6 +2,7 @@
 name = "licenses"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 clap = { version = "*", default-features = true, features = ["derive"] }
@@ -10,7 +11,11 @@ anyhow = "*"
 ureq = { version = "*", features = ["json"] }
 url = { version = "*", features = ["serde"] }
 serde = { version = "*", features = ["derive"] }
-spdx = { version = "*", features = ["detection-parallel", "detection", "detection-inline-cache"] }
+spdx = { version = "*", features = [
+    "detection-parallel",
+    "detection",
+    "detection-inline-cache",
+] }
 rayon = "*"
 indicatif = { version = "*", features = ["rayon"] }
 serde_json = "*"
@@ -25,6 +30,9 @@ tempfile = "*"
 
 [package.metadata.licenses]
 allow = [
-    "copy-left", "unknown-type:aho_corasick-COPYING", "unknown-type:encode_unicode-AUTHORS.md",
-    "unknown-type:linux_raw_sys-COPYRIGHT", "unknown-type:memchr-COPYING"
+    "copy-left",
+    "unknown-type:aho_corasick-COPYING",
+    "unknown-type:encode_unicode-AUTHORS.md",
+    "unknown-type:linux_raw_sys-COPYRIGHT",
+    "unknown-type:memchr-COPYING",
 ]
