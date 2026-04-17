@@ -12,12 +12,13 @@ pub use extraneous::extraneous;
 pub use misnamed::misnamed;
 pub use missing_or_unexpected::missing_or_unexpected;
 pub use no_licenses::no_licenses;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 pub use unknown_type::unknown_type;
 pub use unmet_spdx::unmet_spdx;
 
 #[derive(
     Deserialize,
+    Serialize,
     Debug,
     Clone,
     Copy,

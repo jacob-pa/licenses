@@ -19,7 +19,8 @@ impl Display for CombinedReport {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} {}: {}",
+            "[{}] {} {}: {}",
+            serde_json::to_value(&self.lint).unwrap().as_str().unwrap(),
             self.items.len(),
             self.lint.get_variant_docs(),
             self.items.join(", ")
