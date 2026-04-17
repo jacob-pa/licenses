@@ -13,12 +13,22 @@ pub use misnamed::misnamed;
 pub use missing_or_unexpected::missing_or_unexpected;
 pub use no_licenses::no_licenses;
 pub use report::{CombineReports, CombinedReport, Level, Report};
+use serde::Deserialize;
 pub use unknown_type::unknown_type;
 pub use unmet_spdx::unmet_spdx;
 
 #[derive(
-    Debug, Clone, Copy, clap::ValueEnum, Hash, PartialEq, Eq, documented::DocumentedVariants,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    clap::ValueEnum,
+    Hash,
+    PartialEq,
+    Eq,
+    documented::DocumentedVariants,
 )]
+#[serde(rename_all = "kebab-case")]
 pub enum Lint {
     /// Dependencies with at least one copy-left license
     CopyLeft,

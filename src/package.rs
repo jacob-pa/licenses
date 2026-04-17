@@ -1,5 +1,4 @@
 use crate::Arguments;
-use anyhow::Context;
 use cargo_metadata::{DepKindInfo, DependencyKind, Metadata, PackageId};
 use std::path::PathBuf;
 
@@ -28,22 +27,18 @@ impl From<cargo_metadata::Package> for Package {
     }
 }
 
-pub fn dependencies(args: &Arguments) -> anyhow::Result<impl Iterator<Item = Package>> {
-    let metadata = cargo_metadata::MetadataCommand::new()
-        .current_dir(&args.project_directory)
-        .exec()
-        .context("failed to execute cargo metadata")?;
+pub fn dependencies(args: &Arguments, metadata: Metadata) -> impl Iterator<Item = Package> {
     let included = included_ids(
         &metadata,
         &excluded_ids(&metadata, &args.excluded),
         args.build_dependencies,
         args.dev_dependencies,
     );
-    Ok(metadata
+    metadata
         .packages
         .into_iter()
         .filter(move |package| included.contains(&package.id))
-        .map(Package::from))
+        .map(Package::from)
 }
 
 fn excluded_ids<'m>(metadata: &'m Metadata, excluded: &[String]) -> Vec<&'m PackageId> {

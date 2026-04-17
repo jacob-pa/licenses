@@ -1,4 +1,5 @@
 use crate::local::Local;
+use crate::metadata::Metadata;
 use crate::package::Package;
 use crate::remote::Remote;
 use crate::{GetArguments, SearchRemote, local, package, remote};
@@ -9,8 +10,11 @@ pub struct PackageLicenses {
     pub remote_licenses: Vec<Remote>,
 }
 
-pub fn package_licenses(args: &GetArguments) -> anyhow::Result<Vec<PackageLicenses>> {
-    package::dependencies(&args.common)?
+pub fn package_licenses(
+    args: &GetArguments,
+    metadata: Metadata,
+) -> anyhow::Result<Vec<PackageLicenses>> {
+    package::dependencies(&args.common, metadata)
         .map(|package| package_to_dependency(args.search_remote, &args.keywords, package))
         .collect()
 }

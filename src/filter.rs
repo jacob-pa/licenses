@@ -1,4 +1,5 @@
 use crate::lint::{Level, Report};
+use crate::metadata::Config;
 use crate::{CheckArguments, Filter, Lint};
 use std::collections::HashMap;
 
@@ -8,10 +9,10 @@ pub struct FilterRules {
 }
 
 impl FilterRules {
-    pub fn new(args: &CheckArguments) -> Self {
+    pub fn new(config: &Config, args: &CheckArguments) -> Self {
         Self {
-            rules: rules(args),
-            sub_rules: sub_rules(args),
+            rules: rules(config, args),
+            sub_rules: sub_rules(config, args),
         }
     }
 
@@ -25,15 +26,15 @@ impl FilterRules {
     }
 }
 
-fn rules(args: &CheckArguments) -> HashMap<Lint, Level> {
-    filter_levels(args)
+fn rules(config: &Config, args: &CheckArguments) -> HashMap<Lint, Level> {
+    filter_levels(config, args)
         .filter(|(filter, _)| filter.sub_filter.is_none())
         .map(|(filter, level)| (filter.lint, level))
         .collect()
 }
 
-fn sub_rules(args: &CheckArguments) -> HashMap<(Lint, String), Level> {
-    filter_levels(args)
+fn sub_rules(config: &Config, args: &CheckArguments) -> HashMap<(Lint, String), Level> {
+    filter_levels(config, args)
         .filter_map(|(filter, level)| {
             filter
                 .sub_filter
@@ -43,10 +44,35 @@ fn sub_rules(args: &CheckArguments) -> HashMap<(Lint, String), Level> {
         .collect()
 }
 
-fn filter_levels(args: &CheckArguments) -> impl Iterator<Item = (&Filter, Level)> {
-    args.allow
+fn filter_levels<'a>(
+    config: &'a Config,
+    args: &'a CheckArguments,
+) -> impl Iterator<Item = (Filter, Level)> {
+    config
+        .allow
         .iter()
-        .map(|filter| (filter, Level::Info))
-        .chain(args.warn.iter().map(|filter| (filter, Level::Warning)))
-        .chain(args.deny.iter().map(|filter| (filter, Level::Error)))
+        .map(|lint| {
+            (
+                Filter {
+                    lint: lint.clone(),
+                    sub_filter: None,
+                },
+                Level::Info,
+            )
+        })
+        .chain(
+            args.allow
+                .iter()
+                .map(|filter| (filter.clone(), Level::Info)),
+        )
+        .chain(
+            args.warn
+                .iter()
+                .map(|filter| (filter.clone(), Level::Warning)),
+        )
+        .chain(
+            args.deny
+                .iter()
+                .map(|filter| (filter.clone(), Level::Error)),
+        )
 }

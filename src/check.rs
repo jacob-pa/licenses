@@ -3,15 +3,14 @@ use crate::lint::{
     CombineReports, copy_left, extraneous, misnamed, missing_or_unexpected, no_licenses,
     unknown_type, unmet_spdx,
 };
-use anyhow::Context;
 use std::process::ExitCode;
 
 pub fn check(args: &CheckArguments) -> anyhow::Result<ExitCode> {
-    let filter_rules = crate::filter::FilterRules::new(args);
+    let metadata = crate::metadata::crate_metadata(&args.common.project_directory)?;
+    let config = crate::metadata::config(&metadata)?;
+    let filter_rules = crate::filter::FilterRules::new(&config, args);
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
-    let dependencies: Vec<_> = crate::package::dependencies(&args.common)
-        .context("failed to get dependency information")?
-        .collect();
+    let dependencies: Vec<_> = crate::package::dependencies(&args.common, metadata).collect();
     let licenses = crate::local::output_folder_licenses(&args.common.license_directory);
     let (missing, unexpected) = missing_or_unexpected(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;

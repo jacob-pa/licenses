@@ -953,6 +953,7 @@ dependencies = [
  "openssl",
  "rayon",
  "serde",
+ "serde_json",
  "spdx",
  "tabled",
  "tempfile",

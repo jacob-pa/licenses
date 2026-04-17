@@ -5,6 +5,7 @@ mod identity;
 mod license;
 mod lint;
 mod local;
+mod metadata;
 mod package;
 mod package_licenses;
 mod remote;
