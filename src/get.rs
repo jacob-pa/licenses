@@ -9,6 +9,11 @@ pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
     let dependencies = package_licenses::package_licenses(args, &metadata)?;
     let no_licenses = dependencies_with_no_licenses(&dependencies);
+    reporter.info(format!(
+        "{} licenses found for {} dependencies",
+        total_licenses(&dependencies),
+        dependencies.len()
+    ));
     if !no_licenses.is_empty() {
         reporter.warning(format!(
             "{} dependencies with no licenses: {}",
@@ -24,11 +29,6 @@ pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
         copy_local(args, dependency)?;
         copy_remote(args, dependency)?;
     }
-    reporter.info(format!(
-        "{} licenses found for {} dependencies",
-        total_licenses(&dependencies),
-        dependencies.len()
-    ));
     Ok(reporter.exit_code())
 }
 

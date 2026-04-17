@@ -14,6 +14,7 @@
     - [ ] Warn if no "license-file" file filled out in cargo
 - [ ] Error for "cargo run -- prune INVALID" is weirdly formatted
 - [ ] Make sure remote licenses from repos are from the right commit / version
+- [ ] Handle license exceptions properly (what even are they?)
 
 # Done
 - [x] Don't use "tests" license to fix Pixar detection bug in identity: use a license file just for that in src
