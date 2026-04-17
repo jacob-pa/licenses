@@ -79,6 +79,6 @@ fn filter_levels<'a>(
         .chain(filter_level(&config.deny, Level::Error))
 }
 
-fn filter_level(filters: &Vec<Filter>, level: Level) -> impl Iterator<Item = (Filter, Level)> {
+fn filter_level(filters: &[Filter], level: Level) -> impl Iterator<Item = (Filter, Level)> {
     filters.iter().map(move |filter| (filter.clone(), level))
 }
