@@ -9,11 +9,11 @@ pub struct Package {
     pub spdx_license: Option<spdx::Expression>,
 }
 
-impl From<cargo_metadata::Package> for Package {
-    fn from(package: cargo_metadata::Package) -> Self {
+impl From<&cargo_metadata::Package> for Package {
+    fn from(package: &cargo_metadata::Package) -> Self {
         Self {
             name: package.name.replace('-', "_"),
-            repository: package.repository,
+            repository: package.repository.clone(),
             project_folder: package
                 .manifest_path
                 .as_std_path()
@@ -22,21 +22,31 @@ impl From<cargo_metadata::Package> for Package {
                 .to_path_buf(),
             spdx_license: package
                 .license
+                .clone()
                 .and_then(|l| spdx::Expression::parse(&l).ok()),
         }
     }
 }
 
-pub fn dependencies(args: &Arguments, metadata: Metadata) -> impl Iterator<Item = Package> {
+pub fn root_package(metadata: &Metadata) -> Package {
+    metadata
+        .packages
+        .iter()
+        .find(|p| p.id == metadata.workspace_members[0])
+        .expect("malformed metadata")
+        .into()
+}
+
+pub fn dependencies(args: &Arguments, metadata: &Metadata) -> impl Iterator<Item = Package> {
     let included = included_ids(
-        &metadata,
-        &excluded_ids(&metadata, &args.excluded),
+        metadata,
+        &excluded_ids(metadata, &args.excluded),
         args.build_dependencies,
         args.dev_dependencies,
     );
     metadata
         .packages
-        .into_iter()
+        .iter()
         .filter(move |package| included.contains(&package.id))
         .map(Package::from)
 }

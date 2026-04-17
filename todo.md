@@ -5,6 +5,7 @@
 - [ ] Workspace support
 - [ ] Combine "missing" and "unmet-spdx" alerts together?
 - [ ] Add suggested fixes in the drrors?
+- [ ] Don't list the number if only one of them?
 - [ ] more commands
     - [ ] Add a "add" command for quickly adding allow/warn/deny rules?
     - [ ] "prune" command for removing extra unneeded license
@@ -13,7 +14,7 @@
     - [ ] Lint for unused allow/warn/deny flags/config
     - [ ] lint for deciding minimal set of licenses needed and warning on extra ones that aint needed
     - [ ] Compare projects SPDX license (if any) with compatibility with licenses
-    - [ ] Warn if no "license" or "license-file" file filled out in cargo
+    - [ ] Warn if no "license-file" file filled out in cargo
     - [ ] Warn if no license files in workspace crates? what if not published?
 
 # Done
@@ -21,3 +22,4 @@
 - [x] Lint name in report, so it can be more easily added to config file / command line by name
 - [x] Consistent report order (by level, then alphabetically?)
 - [x] Allow/warn/deny lints in Cargo.toml
+- [x] Warn if no "license" file filled out in cargo

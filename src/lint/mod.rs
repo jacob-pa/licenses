@@ -2,6 +2,7 @@ mod copy_left;
 mod extraneous;
 mod misnamed;
 mod missing_or_unexpected;
+mod no_cargo_license;
 mod no_licenses;
 mod unknown_type;
 mod unmet_spdx;
@@ -11,6 +12,7 @@ pub use copy_left::copy_left;
 pub use extraneous::extraneous;
 pub use misnamed::misnamed;
 pub use missing_or_unexpected::missing_or_unexpected;
+pub use no_cargo_license::no_cargo_license;
 pub use no_licenses::no_licenses;
 use serde::{Deserialize, Serialize};
 pub use unknown_type::unknown_type;
@@ -48,4 +50,6 @@ pub enum Lint {
     UnknownType,
     /// Packages without licenses required by their Cargo.toml package.license field
     UnmetSpdx,
+    /// The root package does not have the "license" field set in the Cargo.toml
+    NoCargoLicense,
 }

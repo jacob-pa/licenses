@@ -1,7 +1,7 @@
 use crate::CheckArguments;
 use crate::lint::{
-    CombineReports, copy_left, extraneous, misnamed, missing_or_unexpected, no_licenses,
-    unknown_type, unmet_spdx,
+    CombineReports, copy_left, extraneous, misnamed, missing_or_unexpected, no_cargo_license,
+    no_licenses, unknown_type, unmet_spdx,
 };
 use std::process::ExitCode;
 
@@ -10,13 +10,14 @@ pub fn check(args: &CheckArguments) -> anyhow::Result<ExitCode> {
     let config = crate::metadata::config(&metadata)?;
     let filter_rules = crate::filter::FilterRules::new(&config, args);
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
-    let dependencies: Vec<_> = crate::package::dependencies(&args.common, metadata).collect();
+    let dependencies: Vec<_> = crate::package::dependencies(&args.common, &metadata).collect();
     let licenses = crate::local::output_folder_licenses(&args.common.license_directory);
     let (missing, unexpected) = missing_or_unexpected(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
 
     let mut reports: Vec<_> = missing
         .into_iter()
+        .chain(no_cargo_license(&crate::package::root_package(&metadata)))
         .chain(unmet_spdx(&dependencies, &licenses))
         .chain(copy_left(&licenses))
         .chain(no_licenses(

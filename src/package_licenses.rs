@@ -12,7 +12,7 @@ pub struct PackageLicenses {
 
 pub fn package_licenses(
     args: &GetArguments,
-    metadata: Metadata,
+    metadata: &Metadata,
 ) -> anyhow::Result<Vec<PackageLicenses>> {
     package::dependencies(&args.common, metadata)
         .map(|package| package_to_dependency(args.search_remote, &args.keywords, package))
