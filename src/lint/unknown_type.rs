@@ -1,6 +1,6 @@
-use super::report::{Level, Report};
 use crate::Lint;
 use crate::identity::IdentifiedLicense;
+use crate::report::{Level, Report};
 
 pub fn unknown_type(licenses: &[IdentifiedLicense]) -> impl Iterator<Item = Report> {
     licenses

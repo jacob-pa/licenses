@@ -9,6 +9,7 @@ mod metadata;
 mod package;
 mod package_licenses;
 mod remote;
+mod report;
 mod reporter;
 mod summary;
 
