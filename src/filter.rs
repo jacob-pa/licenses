@@ -1,7 +1,30 @@
 use crate::lint::{Level, Report};
 use crate::metadata::Config;
-use crate::{CheckArguments, Filter, Lint};
+use crate::{CheckArguments, Lint};
+use clap::ValueEnum;
 use std::collections::HashMap;
+use std::str::FromStr;
+
+#[derive(Clone)]
+pub struct Filter {
+    pub lint: Lint,
+    pub sub_filter: Option<String>,
+}
+
+impl FromStr for Filter {
+    type Err = String;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let (lint, sub_filter) = match string.split_once(":") {
+            Some((prefix, suffix)) => (prefix, Some(suffix.to_string())),
+            None => (string, None),
+        };
+        Ok(Self {
+            lint: Lint::from_str(lint, true)?,
+            sub_filter,
+        })
+    }
+}
 
 pub struct FilterRules {
     rules: HashMap<Lint, Level>,
@@ -48,31 +71,14 @@ fn filter_levels<'a>(
     config: &'a Config,
     args: &'a CheckArguments,
 ) -> impl Iterator<Item = (Filter, Level)> {
-    config
-        .allow
-        .iter()
-        .map(|lint| {
-            (
-                Filter {
-                    lint: lint.clone(),
-                    sub_filter: None,
-                },
-                Level::Info,
-            )
-        })
-        .chain(
-            args.allow
-                .iter()
-                .map(|filter| (filter.clone(), Level::Info)),
-        )
-        .chain(
-            args.warn
-                .iter()
-                .map(|filter| (filter.clone(), Level::Warning)),
-        )
-        .chain(
-            args.deny
-                .iter()
-                .map(|filter| (filter.clone(), Level::Error)),
-        )
+    filter_level(&config.allow, Level::Info)
+        .chain(filter_level(&args.allow, Level::Info))
+        .chain(filter_level(&args.warn, Level::Warning))
+        .chain(filter_level(&config.warn, Level::Warning))
+        .chain(filter_level(&args.deny, Level::Error))
+        .chain(filter_level(&config.deny, Level::Error))
+}
+
+fn filter_level(filters: &Vec<Filter>, level: Level) -> impl Iterator<Item = (Filter, Level)> {
+    filters.iter().map(move |filter| (filter.clone(), level))
 }

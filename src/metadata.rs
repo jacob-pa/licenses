@@ -1,9 +1,9 @@
+use crate::filter::Filter;
 use anyhow::Context;
-use serde::Deserialize;
-use std::path::Path;
-
-use crate::lint::Lint;
 pub use cargo_metadata::Metadata;
+use serde::{Deserialize, Deserializer};
+use std::path::Path;
+use std::str::FromStr;
 
 pub fn crate_metadata(project_directory: &Path) -> anyhow::Result<Metadata> {
     cargo_metadata::MetadataCommand::new()
@@ -27,5 +27,20 @@ pub fn config(metadata: &Metadata) -> anyhow::Result<Config> {
 
 #[derive(Deserialize, Default)]
 pub struct Config {
-    pub allow: Vec<Lint>,
+    #[serde(default, deserialize_with = "filters_from_strings")]
+    pub allow: Vec<Filter>,
+    #[serde(default, deserialize_with = "filters_from_strings")]
+    pub warn: Vec<Filter>,
+    #[serde(default, deserialize_with = "filters_from_strings")]
+    pub deny: Vec<Filter>,
+}
+
+fn filters_from_strings<'de, D>(deserializer: D) -> Result<Vec<Filter>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Vec::<String>::deserialize(deserializer)?
+        .into_iter()
+        .map(|s| Filter::from_str(&s).map_err(serde::de::Error::custom))
+        .collect()
 }

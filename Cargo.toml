@@ -29,4 +29,7 @@ openssl = { version = "*", features = ["vendored"] }
 tempfile = "*"
 
 [package.metadata.licenses]
-allow = ["copy-left"]
+allow = [
+    "copy-left", "unknown-type:aho_corasick-COPYING", "unknown-type:encode_unicode-AUTHORS.md",
+    "unknown-type:linux_raw_sys-COPYRIGHT", "unknown-type:memchr-COPYING"
+]

@@ -12,11 +12,11 @@ mod remote;
 mod reporter;
 mod summary;
 
+use crate::filter::Filter;
 use crate::lint::Lint;
 use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
 use std::process::ExitCode;
-use std::str::FromStr;
 
 fn main() -> anyhow::Result<ExitCode> {
     match Command::parse() {
@@ -101,25 +101,4 @@ enum SearchRemote {
     IfNotLocal,
     /// always search remotely licenses, even if one or more found locally
     Always,
-}
-
-#[derive(Clone)]
-struct Filter {
-    lint: Lint,
-    sub_filter: Option<String>,
-}
-
-impl FromStr for Filter {
-    type Err = String;
-
-    fn from_str(string: &str) -> Result<Self, Self::Err> {
-        let (lint, sub_filter) = match string.split_once(":") {
-            Some((prefix, suffix)) => (prefix, Some(suffix.to_string())),
-            None => (string, None),
-        };
-        Ok(Self {
-            lint: Lint::from_str(lint, true)?,
-            sub_filter,
-        })
-    }
 }
