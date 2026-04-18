@@ -14,7 +14,7 @@ pub fn prune(args: &PruneArguments) -> anyhow::Result<ExitCode> {
     let dependencies: Vec<_> = crate::package::dependencies(&args.common, &metadata).collect();
     let licenses = crate::local::output_folder_licenses(&args.common.license_directory);
     let licenses = crate::identity::identified_licenses(&licenses)?;
-    let extraneous: Vec<_> = extraneous_licenses(&args.licenses, &dependencies, &licenses);
+    let extraneous = extraneous_licenses(&args.licenses, &dependencies, &licenses);
 
     reporter.info(format!(
         "removing {} extraneous license(s)",
@@ -34,46 +34,28 @@ fn extraneous_licenses(
     dependencies: &[Package],
     licenses: &[IdentifiedLicense],
 ) -> Vec<PathBuf> {
-    let requirements: Vec<_> = dependencies
+    dependencies
         .iter()
-        .flat_map(|package| package_requirements(preference, package, licenses))
-        .collect();
-    licenses
-        .iter()
-        .filter(|l| !requirements.iter().any(|r| r == &l.license.location))
-        .map(|l| l.license.location.clone())
+        .flat_map(|package| extraneous_requirements(preference, package, licenses))
         .collect()
 }
 
-fn package_requirements(
+fn extraneous_requirements(
     preference: &[spdx::Licensee],
     package: &Package,
     licenses: &[IdentifiedLicense],
 ) -> Vec<PathBuf> {
+    let expression = match package.spdx_license.as_ref() {
+        Some(expression) => expression,
+        None => return Vec::new(),
+    };
     let package_licenses: Vec<_> = licenses
         .iter()
         .filter(|l| l.license.package == package.name)
         .collect();
-    package
-        .spdx_license
-        .as_ref()
-        .and_then(|expression| minimal_requirements(preference, expression, &package_licenses))
-        .unwrap_or_else(|| {
-            package_licenses
-                .into_iter()
-                .map(|l| l.license.location.clone())
-                .collect()
-        })
-}
-
-fn minimal_requirements(
-    preference: &[spdx::Licensee],
-    expression: &spdx::Expression,
-    licenses: &[&IdentifiedLicense],
-) -> Option<Vec<PathBuf>> {
     let licensees: Vec<_> = sort_requirements(
         preference,
-        licenses
+        package_licenses
             .iter()
             .flat_map(|l| l.ids())
             .map(licensee_from_id)
@@ -81,15 +63,15 @@ fn minimal_requirements(
     );
     let requirements = match expression.minimized_requirements(&licensees) {
         Ok(requirements) => requirements,
-        Err(_) => return None,
+        Err(_) => return Vec::new(),
     };
-    Some(
-        licenses
-            .iter()
-            .filter(|l| required_license(&requirements, l))
-            .map(|l| l.license.location.clone())
-            .collect(),
-    )
+
+    package_licenses
+        .iter()
+        .filter(|l| !l.ids_from_content.is_empty())
+        .filter(|l| !required_license(&requirements, l))
+        .map(|l| l.license.location.clone())
+        .collect()
 }
 
 fn sort_requirements(

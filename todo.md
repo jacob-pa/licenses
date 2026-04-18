@@ -1,5 +1,7 @@
 # To do
 
+- [ ] Put version numbers in file name! Dependencies may have different licenses at different versions!
+- [ ] Conservative prune: only licenses that are in the SPDX expression but are not needed, leave unknown types.
 - [ ] All other command line flags in Cargo.toml
 - [ ] Cache spdx detection to avoid re-running?
 - [ ] Workspace support
