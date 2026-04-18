@@ -1,5 +1,4 @@
-use crate::package::Version;
-use crate::package_id::PackageId;
+use crate::package::{PackageId, Version};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, PartialEq)]

@@ -74,7 +74,7 @@ fn possible_ids_from_word(word: &str) -> impl Iterator<Item = LicenseId> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{package::Version, package_id::PackageId};
+    use crate::package::{PackageId, Version};
     use std::io::Write;
 
     #[test]

@@ -1,7 +1,6 @@
+use super::{Package, PackageId};
 use crate::license::{LocalLicense, RemoteLicense};
 use crate::metadata::Metadata;
-use crate::package::Package;
-use crate::package_id::PackageId;
 use crate::{GetArguments, SearchRemote, package};
 
 pub struct PackageLicenses {

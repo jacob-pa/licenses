@@ -1,13 +1,13 @@
+use crate::GetArguments;
 use crate::license::OutputLicense;
-use crate::package_licenses::PackageLicenses;
-use crate::{GetArguments, package_licenses};
+use crate::package::{PackageLicenses, package_licenses};
 use indicatif::ProgressIterator;
 use std::process::ExitCode;
 
 pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
     let metadata = crate::metadata::crate_metadata(&args.common.project_directory)?;
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
-    let dependencies = package_licenses::package_licenses(args, &metadata)?;
+    let dependencies = package_licenses(args, &metadata)?;
     let no_licenses = dependencies_with_no_licenses(&dependencies);
 
     reporter.info(format!(

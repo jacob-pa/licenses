@@ -1,8 +1,7 @@
 use crate::Lint;
 use crate::identity::IdentifiedLicense;
 use crate::lint::{Level, Report};
-use crate::package::Package;
-use crate::package_id::PackageId;
+use crate::package::{Package, PackageId};
 
 pub fn unmet_spdx(
     dependencies: &[Package],
