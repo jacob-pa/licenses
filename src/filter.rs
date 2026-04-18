@@ -1,6 +1,5 @@
-use crate::config::Config;
 use crate::lint::{Level, Report};
-use crate::{CheckArguments, Lint};
+use crate::{CheckArguments, FilterConfig, Lint};
 use clap::ValueEnum;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -32,7 +31,7 @@ pub struct FilterRules {
 }
 
 impl FilterRules {
-    pub fn new(config: &Config, args: &CheckArguments) -> Self {
+    pub fn new(config: &FilterConfig, args: &CheckArguments) -> Self {
         Self {
             rules: rules(config, args),
             sub_rules: sub_rules(config, args),
@@ -49,14 +48,14 @@ impl FilterRules {
     }
 }
 
-fn rules(config: &Config, args: &CheckArguments) -> HashMap<Lint, Level> {
+fn rules(config: &FilterConfig, args: &CheckArguments) -> HashMap<Lint, Level> {
     filter_levels(config, args)
         .filter(|(filter, _)| filter.sub_filter.is_none())
         .map(|(filter, level)| (filter.lint, level))
         .collect()
 }
 
-fn sub_rules(config: &Config, args: &CheckArguments) -> HashMap<(Lint, String), Level> {
+fn sub_rules(config: &FilterConfig, args: &CheckArguments) -> HashMap<(Lint, String), Level> {
     filter_levels(config, args)
         .filter_map(|(filter, level)| {
             filter
@@ -68,15 +67,15 @@ fn sub_rules(config: &Config, args: &CheckArguments) -> HashMap<(Lint, String), 
 }
 
 fn filter_levels<'a>(
-    config: &'a Config,
+    config: &'a FilterConfig,
     args: &'a CheckArguments,
 ) -> impl Iterator<Item = (Filter, Level)> {
     filter_level(&config.allow, Level::Info)
-        .chain(filter_level(&args.allow, Level::Info))
-        .chain(filter_level(&args.warn, Level::Warning))
+        .chain(filter_level(&args.filters.allow, Level::Info))
         .chain(filter_level(&config.warn, Level::Warning))
-        .chain(filter_level(&args.deny, Level::Error))
+        .chain(filter_level(&args.filters.warn, Level::Warning))
         .chain(filter_level(&config.deny, Level::Error))
+        .chain(filter_level(&args.filters.deny, Level::Error))
 }
 
 fn filter_level(filters: &[Filter], level: Level) -> impl Iterator<Item = (Filter, Level)> {

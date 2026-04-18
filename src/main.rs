@@ -14,8 +14,10 @@ mod summary;
 use crate::filter::Filter;
 use crate::lint::Lint;
 use clap::{Parser, ValueEnum};
+use serde::Deserialize;
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::str::FromStr;
 
 fn main() -> anyhow::Result<ExitCode> {
     match Command::parse() {
@@ -62,15 +64,8 @@ struct CheckArguments {
     #[clap(flatten)]
     common: Arguments,
 
-    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
-    /// Allow violations of this specific lint, reporting as info only. Sub filters always override non-sub ones.
-    allow: Vec<Filter>,
-    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
-    /// Warn on violations of this specific lint. Override allow if set. Sub filters always override non-sub ones.
-    warn: Vec<Filter>,
-    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
-    /// Deny violations of this specific lint, reporting as an error. Overrides allow or warn if set. Sub filters always override non-sub ones.
-    deny: Vec<Filter>,
+    #[clap(flatten)]
+    filters: FilterConfig,
 }
 
 #[derive(Parser)]
@@ -112,4 +107,30 @@ enum SearchRemote {
     IfNotLocal,
     /// always search remotely licenses, even if one or more found locally
     Always,
+}
+
+#[derive(Deserialize, Default, Parser)]
+pub struct FilterConfig {
+    #[serde(default, deserialize_with = "filters_from_strings")]
+    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
+    /// Allow violations of this specific lint, reporting as info only. Sub filters always override non-sub ones.
+    pub allow: Vec<Filter>,
+    #[serde(default, deserialize_with = "filters_from_strings")]
+    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
+    /// Warn on violations of this specific lint. Override allow if set. Sub filters always override non-sub ones.
+    pub warn: Vec<Filter>,
+    #[serde(default, deserialize_with = "filters_from_strings")]
+    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
+    /// Deny violations of this specific lint, reporting as an error. Overrides allow or warn if set. Sub filters always override non-sub ones.
+    pub deny: Vec<Filter>,
+}
+
+fn filters_from_strings<'de, D>(deserializer: D) -> Result<Vec<Filter>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Vec::<String>::deserialize(deserializer)?
+        .into_iter()
+        .map(|s| Filter::from_str(&s).map_err(serde::de::Error::custom))
+        .collect()
 }
