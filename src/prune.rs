@@ -51,7 +51,7 @@ fn extraneous_requirements(
     };
     let package_licenses: Vec<_> = licenses
         .iter()
-        .filter(|l| l.license.package == package.name)
+        .filter(|l| l.license.package_id() == package.id())
         .collect();
     let licensees: Vec<_> = sort_requirements(
         preference,

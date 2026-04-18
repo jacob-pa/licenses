@@ -10,6 +10,6 @@ pub fn no_cargo_license(root_package: &Package) -> Option<Report> {
     Some(Report {
         lint: Lint::NoCargoLicense,
         level: Level::Warning,
-        item: root_package.name.clone(),
+        item: root_package.id(),
     })
 }

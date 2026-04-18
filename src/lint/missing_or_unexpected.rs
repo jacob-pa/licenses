@@ -8,8 +8,8 @@ pub fn missing_or_unexpected(
     dependencies: &[Package],
     licenses: &[Local],
 ) -> (Vec<Report>, Vec<Report>) {
-    let expected: HashSet<_> = dependencies.iter().map(|p| p.name.clone()).collect();
-    let found: HashSet<_> = licenses.iter().map(|l| l.package.clone()).collect();
+    let expected: HashSet<_> = dependencies.iter().map(|p| p.id()).collect();
+    let found: HashSet<_> = licenses.iter().map(|l| l.package_id()).collect();
 
     let missing = expected
         .difference(&found)
@@ -23,10 +23,10 @@ pub fn missing_or_unexpected(
 
     let unexpected = found
         .difference(&expected)
-        .flat_map(|p| {
+        .flat_map(|id| {
             licenses
                 .iter()
-                .filter(|l| l.package == *p)
+                .filter(|l| l.package_id() == *id)
                 .map(|l| l.location_file_name())
         })
         .map(|item| Report {

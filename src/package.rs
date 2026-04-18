@@ -1,15 +1,22 @@
 use crate::Arguments;
 use cargo_metadata::{DepKindInfo, DependencyKind, Metadata, PackageId};
+use itertools::Itertools;
 use std::path::PathBuf;
 
 pub use cargo_metadata::semver::Version;
 
 pub struct Package {
     pub name: String,
-    pub repository: Option<String>,
     pub version: Version,
     pub project_folder: PathBuf,
+    pub repository: Option<String>,
     pub spdx_license: Option<spdx::Expression>,
+}
+
+impl Package {
+    pub fn id(&self) -> String {
+        format!("{}_{}", self.name, self.version)
+    }
 }
 
 impl From<&cargo_metadata::Package> for Package {
@@ -53,6 +60,7 @@ pub fn dependencies(args: &Arguments, metadata: &Metadata) -> impl Iterator<Item
         .iter()
         .filter(move |package| included.contains(&package.id))
         .map(Package::from)
+        .dedup_by(|a, b| (&a.name, &a.version) == (&b.name, &b.version))
 }
 
 fn excluded_ids<'m>(metadata: &'m Metadata, excluded: &[String]) -> Vec<&'m PackageId> {

@@ -29,9 +29,4 @@ documented = "*"
 tempfile = "*"
 
 [package.metadata.licenses]
-allow = [
-    "copy-left",
-    "unknown-type:memchr-COPYING",
-    "unknown-type:siphasher-COPYING",
-    "unknown-type:zstd_sys-LICENSE",
-]
+allow = ["copy-left", "unknown-type:aho-corasick_1.1.4_COPYING"]

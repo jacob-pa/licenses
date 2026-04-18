@@ -1,7 +1,5 @@
 # To do
 
-- [ ] Put version numbers in file name! Dependencies may have different licenses at different versions!
-- [ ] Conservative prune: only licenses that are in the SPDX expression but are not needed, leave unknown types.
 - [ ] All other command line flags in Cargo.toml
 - [ ] Cache spdx detection to avoid re-running?
 - [ ] Workspace support
@@ -16,8 +14,10 @@
     - [ ] Warn if no "license-file" file filled out in cargo
 - [ ] Error for "cargo run -- prune INVALID" is weirdly formatted
 - [ ] Make sure remote licenses from repos are from the right commit / version
+    - [ ] Get some kind of version for github licenses?
 - [ ] Handle license exceptions properly (what even are they?)
-- [ ] Get some kind of version for github licenses?
+- [ ] Only consider license "of package" if same name AND same version
+- [ ] "Excluded" ids in 
 
 # Done
 - [x] Don't use "tests" license to fix Pixar detection bug in identity: use a license file just for that in src
@@ -28,6 +28,8 @@
 - [x] "prune" command for removing extra unneeded license
     - [x] priority list for desired licenses e.g. MIT > Apache
 - [x] Version numbers in stored license name
+- [x] Conservative prune: only licenses that are in the SPDX expression but are not needed, leave unknown types.
+- [x] Put version numbers in file name! Dependencies may have different licenses at different versions!
 
 # Dont Do
 - [ ] Combine "missing" and "unmet-spdx" alerts together?
