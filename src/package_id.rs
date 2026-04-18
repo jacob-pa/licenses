@@ -2,8 +2,8 @@ pub use crate::package::Version;
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub struct PackageId {
-    name: String,
-    version: Version,
+    pub name: String,
+    pub version: Version,
 }
 
 impl PackageId {
@@ -23,6 +23,6 @@ impl From<&cargo_metadata::Package> for PackageId {
 
 impl std::fmt::Display for PackageId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}_{}", self.name, self.version)
+        write!(f, "{} {}", self.name, self.version)
     }
 }

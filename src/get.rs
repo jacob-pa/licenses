@@ -1,7 +1,7 @@
+use crate::license::OutputLicense;
 use crate::package_licenses::PackageLicenses;
 use crate::{GetArguments, package_licenses};
 use indicatif::ProgressIterator;
-use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
@@ -52,28 +52,24 @@ fn dependencies_with_no_licenses(dependencies: &[PackageLicenses]) -> Vec<String
 
 fn copy_local(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Result<()> {
     for license in &dependency.local_licenses {
-        std::fs::copy(
-            license.path(),
-            output_file(&args.common.license_directory, dependency, &license.name()),
-        )?;
+        let output = OutputLicense::new(
+            &args.common.license_directory,
+            &dependency.id,
+            &license.name(),
+        );
+        std::fs::copy(license.path(), output.location)?;
     }
     Ok(())
 }
 
 fn copy_remote(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Result<()> {
     for license in &dependency.remote_licenses {
-        let output_path = output_file(&args.common.license_directory, dependency, &license.name);
-        crate::license::download(license, &output_path)?;
+        let output = OutputLicense::new(
+            &args.common.license_directory,
+            &dependency.id,
+            &license.name,
+        );
+        crate::license::download(license, &output.location)?;
     }
     Ok(())
-}
-
-// TODO put this in a file called "output", make a special type for it
-fn output_file(
-    output_directory: &Path,
-    dependency: &PackageLicenses,
-    license_name: &str,
-) -> PathBuf {
-    let file_name = format!("{}_{}", dependency.id, license_name);
-    output_directory.join(file_name)
 }

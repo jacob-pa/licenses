@@ -10,6 +10,17 @@ pub struct OutputLicense {
 }
 
 impl OutputLicense {
+    pub fn new(output_directory: &Path, package_id: &PackageId, name: &str) -> Self {
+        Self {
+            package_id: package_id.clone(),
+            name: name.to_string(),
+            location: output_directory.join(format!(
+                "{}_{}_{}",
+                package_id.name, package_id.version, name
+            )),
+        }
+    }
+
     pub fn location_file_name(&self) -> String {
         self.location
             .file_name()
