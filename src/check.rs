@@ -5,10 +5,14 @@ use crate::lint::{
 };
 use std::process::ExitCode;
 
-pub fn check(args: &CheckArguments) -> anyhow::Result<ExitCode> {
+pub fn check(args: CheckArguments) -> anyhow::Result<ExitCode> {
     let metadata = crate::config::crate_metadata(&args.common.project_directory)?;
     let config = crate::config::config(&metadata)?;
-    let filter_rules = crate::filter::FilterRules::new(&config, args);
+    let args = CheckArguments {
+        common: config.common.overwrite_with(args.common),
+        filter: config.filter.overwrite_with(args.filter),
+    };
+    let filter_rules = crate::filter::FilterRules::new(&args.filter);
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
     let dependencies: Vec<_> = crate::package::dependencies(&args.common, &metadata).collect();
     let licenses = crate::license::output_folder_licenses(&args.common.license_directory);

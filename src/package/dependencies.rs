@@ -1,5 +1,5 @@
 use super::Package;
-use crate::Arguments;
+use crate::CommonConfig;
 use cargo_metadata::{DepKindInfo, DependencyKind, Metadata};
 use itertools::Itertools;
 
@@ -12,7 +12,7 @@ pub fn root_package(metadata: &Metadata) -> Package {
         .into()
 }
 
-pub fn dependencies(args: &Arguments, metadata: &Metadata) -> impl Iterator<Item = Package> {
+pub fn dependencies(args: &CommonConfig, metadata: &Metadata) -> impl Iterator<Item = Package> {
     let included = included_ids(
         metadata,
         &excluded_ids(metadata, &args.excluded),

@@ -4,10 +4,10 @@ use crate::package::{PackageLicenses, package_licenses};
 use indicatif::ProgressIterator;
 use std::process::ExitCode;
 
-pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
+pub fn get(args: GetArguments) -> anyhow::Result<ExitCode> {
     let metadata = crate::config::crate_metadata(&args.common.project_directory)?;
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
-    let dependencies = package_licenses(args, &metadata)?;
+    let dependencies = package_licenses(&args, &metadata)?;
     let no_licenses = dependencies_with_no_licenses(&dependencies);
 
     reporter.info(format!(
@@ -28,8 +28,8 @@ pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
         .iter()
         .progress_count(dependencies.len() as u64)
     {
-        copy_local(args, dependency)?;
-        copy_remote(args, dependency)?;
+        copy_local(&args, dependency)?;
+        copy_remote(&args, dependency)?;
     }
 
     Ok(reporter.exit_code())
