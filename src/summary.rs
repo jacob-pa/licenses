@@ -1,4 +1,4 @@
-use crate::Arguments;
+use crate::CommonConfig;
 use crate::identity::IdentifiedLicense;
 use itertools::Itertools;
 use std::process::ExitCode;
@@ -6,8 +6,8 @@ use tabled::settings::Width;
 use tabled::settings::peaker::Priority;
 use tabled::{Table, Tabled, settings::Style};
 
-pub fn summary(args: &Arguments) -> anyhow::Result<ExitCode> {
-    let licenses = crate::local::output_folder_licenses(&args.license_directory);
+pub fn summary(args: CommonConfig) -> anyhow::Result<ExitCode> {
+    let licenses = crate::license::output_folder_licenses(&args.license_directory);
     let licenses = crate::identity::identified_licenses(&licenses)?;
     let license_types = unique_license_types(&licenses);
     let summaries: Vec<_> = license_types
@@ -45,7 +45,7 @@ fn license_type_summary(license_type: &str, licenses: &[IdentifiedLicense]) -> L
     let packages: Vec<_> = licenses
         .iter()
         .filter(is_license_type)
-        .map(|l| l.license.package.clone())
+        .map(|l| l.license.package_id.to_string())
         .unique()
         .sorted()
         .collect();
@@ -66,20 +66,11 @@ fn license_type_summary(license_type: &str, licenses: &[IdentifiedLicense]) -> L
 
 fn unknown_license_type_summary(licenses: &[IdentifiedLicense]) -> LicenseSummary {
     let is_license_type = move |l: &&IdentifiedLicense| l.ids().next().is_none();
-    let no_other_licenses = |package: &str| {
-        licenses
-            .iter()
-            .filter(|l| l.license.package == package)
-            .flat_map(|l| l.ids())
-            .next()
-            .is_none()
-    };
     let packages: Vec<_> = licenses
         .iter()
         .filter(is_license_type)
-        .map(|l| l.license.package.clone())
+        .map(|l| l.license.package_id.to_string())
         .unique()
-        .filter(|p| no_other_licenses(p))
         .sorted()
         .collect();
     let license_count = licenses.iter().filter(is_license_type).count();

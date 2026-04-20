@@ -1,47 +1,36 @@
-use crate::Arguments;
-use cargo_metadata::{DepKindInfo, DependencyKind, Metadata, PackageId};
-use std::path::PathBuf;
+use super::Package;
+use crate::CommonConfig;
+use cargo_metadata::{DepKindInfo, DependencyKind, Metadata};
+use itertools::Itertools;
 
-pub struct Package {
-    pub name: String,
-    pub repository: Option<String>,
-    pub project_folder: PathBuf,
-    pub spdx_license: Option<spdx::Expression>,
+pub fn root_package(metadata: &Metadata) -> Package {
+    metadata
+        .packages
+        .iter()
+        .find(|p| p.id == metadata.workspace_members[0])
+        .expect("malformed metadata")
+        .into()
 }
 
-impl From<cargo_metadata::Package> for Package {
-    fn from(package: cargo_metadata::Package) -> Self {
-        Self {
-            name: package.name.replace('-', "_"),
-            repository: package.repository,
-            project_folder: package
-                .manifest_path
-                .as_std_path()
-                .parent()
-                .expect("manifest not in a folder")
-                .to_path_buf(),
-            spdx_license: package
-                .license
-                .and_then(|l| spdx::Expression::parse(&l).ok()),
-        }
-    }
-}
-
-pub fn dependencies(args: &Arguments, metadata: Metadata) -> impl Iterator<Item = Package> {
+pub fn dependencies(args: &CommonConfig, metadata: &Metadata) -> impl Iterator<Item = Package> {
     let included = included_ids(
-        &metadata,
-        &excluded_ids(&metadata, &args.excluded),
+        metadata,
+        &excluded_ids(metadata, &args.excluded),
         args.build_dependencies,
         args.dev_dependencies,
     );
     metadata
         .packages
-        .into_iter()
+        .iter()
         .filter(move |package| included.contains(&package.id))
         .map(Package::from)
+        .dedup_by(|a, b| a.id == b.id)
 }
 
-fn excluded_ids<'m>(metadata: &'m Metadata, excluded: &[String]) -> Vec<&'m PackageId> {
+fn excluded_ids<'m>(
+    metadata: &'m Metadata,
+    excluded: &[String],
+) -> Vec<&'m cargo_metadata::PackageId> {
     metadata
         .packages
         .iter()
@@ -52,10 +41,10 @@ fn excluded_ids<'m>(metadata: &'m Metadata, excluded: &[String]) -> Vec<&'m Pack
 
 fn included_ids(
     metadata: &Metadata,
-    excluded: &[&PackageId],
+    excluded: &[&cargo_metadata::PackageId],
     build_dependencies: bool,
     dev_dependencies: bool,
-) -> Vec<PackageId> {
+) -> Vec<cargo_metadata::PackageId> {
     let mut unvisited: Vec<_> = metadata
         .workspace_members
         .iter()

@@ -1,22 +1,27 @@
 use crate::CheckArguments;
 use crate::lint::{
-    CombineReports, copy_left, extraneous, misnamed, missing_or_unexpected, no_licenses,
-    unknown_type, unmet_spdx,
+    CombineReports, copy_left, extraneous, misnamed, missing_or_unexpected, no_cargo_license,
+    no_licenses, unknown_type, unmet_spdx,
 };
 use std::process::ExitCode;
 
-pub fn check(args: &CheckArguments) -> anyhow::Result<ExitCode> {
-    let metadata = crate::metadata::crate_metadata(&args.common.project_directory)?;
-    let config = crate::metadata::config(&metadata)?;
-    let filter_rules = crate::filter::FilterRules::new(&config, args);
+pub fn check(args: CheckArguments) -> anyhow::Result<ExitCode> {
+    let metadata = crate::config::crate_metadata(&args.common.project_directory)?;
+    let config = crate::config::config(&metadata)?;
+    let args = CheckArguments {
+        common: config.common.overwrite_with(args.common),
+        filter: config.filter.overwrite_with(args.filter),
+    };
+    let filter_rules = crate::filter::FilterRules::new(&args.filter);
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
-    let dependencies: Vec<_> = crate::package::dependencies(&args.common, metadata).collect();
-    let licenses = crate::local::output_folder_licenses(&args.common.license_directory);
+    let dependencies: Vec<_> = crate::package::dependencies(&args.common, &metadata).collect();
+    let licenses = crate::license::output_folder_licenses(&args.common.license_directory);
     let (missing, unexpected) = missing_or_unexpected(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
 
     let mut reports: Vec<_> = missing
         .into_iter()
+        .chain(no_cargo_license(&crate::package::root_package(&metadata)))
         .chain(unmet_spdx(&dependencies, &licenses))
         .chain(copy_left(&licenses))
         .chain(no_licenses(

@@ -1,4 +1,4 @@
-use crate::local::Local;
+use crate::license::OutputLicense;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 use spdx::LicenseId;
@@ -7,7 +7,7 @@ use spdx::detection::scan::Scanner;
 
 #[derive(Debug, PartialEq)]
 pub struct IdentifiedLicense<'a> {
-    pub license: &'a Local,
+    pub license: &'a OutputLicense,
     pub id_from_name: Option<LicenseId>,
     pub ids_from_content: Vec<LicenseId>,
 }
@@ -18,12 +18,14 @@ impl IdentifiedLicense<'_> {
     }
 }
 
-pub fn identified_licenses(licenses: &'_ [Local]) -> anyhow::Result<Vec<IdentifiedLicense<'_>>> {
+pub fn identified_licenses(
+    licenses: &'_ [OutputLicense],
+) -> anyhow::Result<Vec<IdentifiedLicense<'_>>> {
     let mut store = spdx::detection::Store::load_inline()?;
     store.add_variant(
         "Apache-2.0",
         LicenseType::Alternate,
-        include_str!("../tests/anyhow-LICENSE-APACHE").into(),
+        include_str!("apache-license.txt").into(),
     )?;
     let scanner = Scanner::new(&store).optimize(true /* look for multi-license files */);
     licenses
@@ -35,7 +37,7 @@ pub fn identified_licenses(licenses: &'_ [Local]) -> anyhow::Result<Vec<Identifi
 
 fn identify_license<'a>(
     scanner: &Scanner,
-    license: &'a Local,
+    license: &'a OutputLicense,
 ) -> anyhow::Result<IdentifiedLicense<'a>> {
     Ok(IdentifiedLicense {
         id_from_name: id_from_name(license),
@@ -44,7 +46,7 @@ fn identify_license<'a>(
     })
 }
 
-fn ids_from_content(scanner: &Scanner, license: &Local) -> anyhow::Result<Vec<LicenseId>> {
+fn ids_from_content(scanner: &Scanner, license: &OutputLicense) -> anyhow::Result<Vec<LicenseId>> {
     let scanned = scanner.scan(&std::fs::read_to_string(&license.location)?.into());
     Ok(scanned
         .license
@@ -54,7 +56,7 @@ fn ids_from_content(scanner: &Scanner, license: &Local) -> anyhow::Result<Vec<Li
         .collect())
 }
 
-fn id_from_name(license: &Local) -> Option<LicenseId> {
+fn id_from_name(license: &OutputLicense) -> Option<LicenseId> {
     // slightly arbitrarily preferring earlier words, and more precise names
     license
         .name
@@ -72,14 +74,15 @@ fn possible_ids_from_word(word: &str) -> impl Iterator<Item = LicenseId> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::package::{PackageId, Version};
     use std::io::Write;
 
     #[test]
     fn test_identified_licenses() {
         let apache_license_id = spdx::license_id("Apache-2.0").unwrap();
-        let license_file = temp_file(include_bytes!("../tests/ahash-LICENSE-APACHE"));
-        let licenses = [Local {
-            package: "anyhow".to_string(),
+        let license_file = temp_file(include_bytes!("../tests/ahash_1.0.0_LICENSE-APACHE"));
+        let licenses = [OutputLicense {
+            package_id: PackageId::new("ahash", Version::parse("1.0.0").unwrap()),
             name: "LICENSE-APACHE".to_string(),
             location: license_file.to_path_buf(),
         }];
@@ -96,9 +99,9 @@ mod test {
     #[test]
     fn test_identified_licenses_is_not_pixar_pixar() {
         let apache_license_id = spdx::license_id("Apache-2.0").unwrap();
-        let license_file = temp_file(include_bytes!("../tests/anyhow-LICENSE-APACHE"));
-        let licenses = [Local {
-            package: "anyhow".to_string(),
+        let license_file = temp_file(include_bytes!("../tests/anyhow_1.0.0_LICENSE-APACHE"));
+        let licenses = [OutputLicense {
+            package_id: PackageId::new("anyhow", Version::parse("1.0.0").unwrap()),
             name: "LICENSE-APACHE".to_string(),
             location: license_file.to_path_buf(),
         }];

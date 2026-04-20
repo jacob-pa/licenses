@@ -33,13 +33,13 @@ fn extraneous_package_licenses<'a>(
 ) -> Vec<String> {
     let package_licenses: Vec<_> = licenses
         .iter()
-        .filter(|l| l.license.package == package.name)
+        .filter(|l| l.license.package_id == package.id)
         .collect();
     match minimal_requirements(expression, &package_licenses) {
         Some(required) => package_licenses
             .into_iter()
             .filter(|l| !required.iter().any(|r| r.name != l.license.name))
-            .map(|l| format!("{} (not {})", l.license.file_name(), expression))
+            .map(|l| format!("{} (not {})", l.license.location_file_name(), expression))
             .collect(),
         None => Vec::new(),
     }

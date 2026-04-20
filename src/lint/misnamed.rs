@@ -31,7 +31,7 @@ fn display_misnamed(l: &IdentifiedLicense) -> String {
         .join(", ");
     format!(
         "{} ({} vs {})",
-        l.license.file_name(),
+        l.license.location_file_name(),
         file_name_id,
         content_ids
     )

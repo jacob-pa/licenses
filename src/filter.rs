@@ -1,6 +1,5 @@
 use crate::lint::{Level, Report};
-use crate::metadata::Config;
-use crate::{CheckArguments, Lint};
+use crate::{FilterConfig, Lint};
 use clap::ValueEnum;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -32,10 +31,10 @@ pub struct FilterRules {
 }
 
 impl FilterRules {
-    pub fn new(config: &Config, args: &CheckArguments) -> Self {
+    pub fn new(config: &FilterConfig) -> Self {
         Self {
-            rules: rules(config, args),
-            sub_rules: sub_rules(config, args),
+            rules: rules(config),
+            sub_rules: sub_rules(config),
         }
     }
 
@@ -49,15 +48,15 @@ impl FilterRules {
     }
 }
 
-fn rules(config: &Config, args: &CheckArguments) -> HashMap<Lint, Level> {
-    filter_levels(config, args)
+fn rules(config: &FilterConfig) -> HashMap<Lint, Level> {
+    filter_levels(config)
         .filter(|(filter, _)| filter.sub_filter.is_none())
         .map(|(filter, level)| (filter.lint, level))
         .collect()
 }
 
-fn sub_rules(config: &Config, args: &CheckArguments) -> HashMap<(Lint, String), Level> {
-    filter_levels(config, args)
+fn sub_rules(config: &FilterConfig) -> HashMap<(Lint, String), Level> {
+    filter_levels(config)
         .filter_map(|(filter, level)| {
             filter
                 .sub_filter
@@ -67,15 +66,9 @@ fn sub_rules(config: &Config, args: &CheckArguments) -> HashMap<(Lint, String), 
         .collect()
 }
 
-fn filter_levels<'a>(
-    config: &'a Config,
-    args: &'a CheckArguments,
-) -> impl Iterator<Item = (Filter, Level)> {
+fn filter_levels(config: &FilterConfig) -> impl Iterator<Item = (Filter, Level)> {
     filter_level(&config.allow, Level::Info)
-        .chain(filter_level(&args.allow, Level::Info))
-        .chain(filter_level(&args.warn, Level::Warning))
         .chain(filter_level(&config.warn, Level::Warning))
-        .chain(filter_level(&args.deny, Level::Error))
         .chain(filter_level(&config.deny, Level::Error))
 }
 

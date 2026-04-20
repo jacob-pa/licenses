@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cargo check",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["run", "--", "check"],
+      "group": "build"
+    },
+    {
+      "label": "cargo get",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["run", "--", "get"],
+      "group": "build"
+    }
+  ]
+}

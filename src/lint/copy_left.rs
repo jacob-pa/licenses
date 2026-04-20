@@ -9,6 +9,6 @@ pub fn copy_left(licenses: &[IdentifiedLicense]) -> impl Iterator<Item = Report>
         .map(|l| Report {
             lint: Lint::CopyLeft,
             level: Level::Error,
-            item: l.license.file_name(),
+            item: l.license.location_file_name(),
         })
 }

@@ -20,7 +20,7 @@ impl Display for CombinedReport {
         write!(
             f,
             "[{}] {} {}: {}",
-            serde_json::to_value(&self.lint).unwrap().as_str().unwrap(),
+            serde_json::to_value(self.lint).unwrap().as_str().unwrap(),
             self.items.len(),
             self.lint.get_variant_docs(),
             self.items.join(", ")

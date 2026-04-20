@@ -6,7 +6,7 @@ pub fn unknown_type(licenses: &[IdentifiedLicense]) -> impl Iterator<Item = Repo
     licenses
         .iter()
         .filter(|l| l.ids().next().is_none())
-        .map(|l| l.license.file_name())
+        .map(|l| l.license.location_file_name())
         .map(|item| Report {
             lint: Lint::UnknownType,
             level: Level::Warning,
