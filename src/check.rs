@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::CheckConfig;
 use crate::lint::{
     CombineReports, copy_left, extraneous, misnamed, missing_or_unexpected, no_cargo_license,
     no_licenses, unknown_type, unmet_spdx,
@@ -9,10 +9,10 @@ use std::process::ExitCode;
 
 pub fn check(
     metadata: Metadata,
-    config: Config,
+    config: CheckConfig,
     mut reporter: Reporter,
 ) -> anyhow::Result<ExitCode> {
-    let filter_rules = crate::filter::FilterRules::new(&config.filter);
+    let filter_rules = crate::filter::FilterRules::new(&config);
     let dependencies: Vec<_> = crate::package::dependencies(&config.common, &metadata).collect();
     let licenses = crate::license::output_folder_licenses(&config.common.license_directory);
     let (missing, unexpected) = missing_or_unexpected(&dependencies, &licenses);

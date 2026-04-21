@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::GetConfig;
 use crate::license::OutputLicense;
 use crate::package::{PackageLicenses, package_licenses};
 use crate::reporter::Reporter;
@@ -7,7 +7,11 @@ use indicatif::ProgressIterator;
 use std::path::Path;
 use std::process::ExitCode;
 
-pub fn get(metadata: Metadata, config: Config, mut reporter: Reporter) -> anyhow::Result<ExitCode> {
+pub fn get(
+    metadata: Metadata,
+    config: GetConfig,
+    mut reporter: Reporter,
+) -> anyhow::Result<ExitCode> {
     let dependencies = package_licenses(&metadata, &config)?;
     let no_licenses = dependencies_with_no_licenses(&dependencies);
 

@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::CommonConfig;
 use crate::identity::IdentifiedLicense;
 use itertools::Itertools;
 use std::process::ExitCode;
@@ -6,8 +6,8 @@ use tabled::settings::Width;
 use tabled::settings::peaker::Priority;
 use tabled::{Table, Tabled, settings::Style};
 
-pub fn summary(args: Config) -> anyhow::Result<ExitCode> {
-    let licenses = crate::license::output_folder_licenses(&args.common.license_directory);
+pub fn summary(config: CommonConfig) -> anyhow::Result<ExitCode> {
+    let licenses = crate::license::output_folder_licenses(&config.license_directory);
     let licenses = crate::identity::identified_licenses(&licenses)?;
     let license_types = unique_license_types(&licenses);
     let summaries: Vec<_> = license_types

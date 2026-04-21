@@ -13,21 +13,22 @@ mod report;
 mod reporter;
 mod summary;
 
-use crate::arguments::Command;
-use crate::config::{CommonConfig, FilterConfig, SearchRemote};
+use crate::arguments::Arguments;
+use crate::config::{CommonConfig, Config, SearchRemote};
 use crate::lint::Lint;
 use clap::Parser;
 use std::process::ExitCode;
 
 fn main() -> anyhow::Result<ExitCode> {
-    let args = Command::parse();
-    let metadata = metadata::crate_metadata(args.project_directory())?;
-    let config = metadata::parse_metadata_config(&metadata)?;
-    let reporter = reporter::Reporter::new(config.common.quiet);
-    match args {
-        Command::Get(args) => get::get(metadata, args.overwrite(config), reporter),
-        Command::Check(args) => check::check(metadata, args.overwrite(config), reporter),
-        Command::Summary(args) => summary::summary(args.overwrite(config)),
-        Command::Prune(args) => prune::prune(metadata, args.overwrite(config), reporter),
+    let args = Arguments::parse();
+    let metadata = metadata::crate_metadata(&args.common().project_directory)?;
+    let toml_config = metadata::parse_metadata_config(&metadata)?;
+    let config = config::config(toml_config, args);
+    let reporter = reporter::Reporter::new(config.common().quiet);
+    match config {
+        Config::Get(config) => get::get(metadata, config, reporter),
+        Config::Check(config) => check::check(metadata, config, reporter),
+        Config::Summary(config) => summary::summary(config),
+        Config::Prune(config) => prune::prune(metadata, config, reporter),
     }
 }
