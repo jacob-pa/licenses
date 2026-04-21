@@ -4,14 +4,14 @@ use spdx::{LicenseId, LicenseItem, LicenseReq, Licensee};
 
 use crate::config::PruneConfig;
 use crate::identity::IdentifiedLicense;
+use crate::metadata::Metadata;
 use crate::package::Package;
 use crate::reporter::Reporter;
-use cargo_metadata::Metadata;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
 pub fn prune(
-    metadata: Metadata,
+    metadata: impl Metadata,
     config: PruneConfig,
     reporter: Reporter,
 ) -> anyhow::Result<ExitCode> {

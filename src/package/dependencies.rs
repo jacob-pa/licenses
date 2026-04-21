@@ -1,18 +1,21 @@
 use super::Package;
 use crate::config::CommonConfig;
-use cargo_metadata::{DepKindInfo, DependencyKind, Metadata};
+use crate::metadata::{DepKindInfo, DependencyKind, Metadata, PackageId};
 use itertools::Itertools;
 
-pub fn root_package(metadata: &Metadata) -> Package {
+pub fn root_package(metadata: &impl Metadata) -> Package {
     metadata
-        .packages
+        .packages()
         .iter()
-        .find(|p| p.id == metadata.workspace_members[0])
+        .find(|p| p.id == metadata.workspace_members()[0])
         .expect("malformed metadata")
         .into()
 }
 
-pub fn dependencies(args: &CommonConfig, metadata: &Metadata) -> impl Iterator<Item = Package> {
+pub fn dependencies(
+    args: &CommonConfig,
+    metadata: &impl Metadata,
+) -> impl Iterator<Item = Package> {
     let included = included_ids(
         metadata,
         &excluded_ids(metadata, &args.excluded),
@@ -20,19 +23,16 @@ pub fn dependencies(args: &CommonConfig, metadata: &Metadata) -> impl Iterator<I
         args.dev_dependencies,
     );
     metadata
-        .packages
+        .packages()
         .iter()
         .filter(move |package| included.contains(&package.id))
         .map(Package::from)
         .dedup_by(|a, b| a.id == b.id)
 }
 
-fn excluded_ids<'m>(
-    metadata: &'m Metadata,
-    excluded: &[String],
-) -> Vec<&'m cargo_metadata::PackageId> {
+fn excluded_ids<'m>(metadata: &'m impl Metadata, excluded: &[String]) -> Vec<&'m PackageId> {
     metadata
-        .packages
+        .packages()
         .iter()
         .filter(|package| excluded.contains(&package.name))
         .map(|package| &package.id)
@@ -40,18 +40,18 @@ fn excluded_ids<'m>(
 }
 
 fn included_ids(
-    metadata: &Metadata,
+    metadata: &impl Metadata,
     excluded: &[&cargo_metadata::PackageId],
     build_dependencies: bool,
     dev_dependencies: bool,
 ) -> Vec<cargo_metadata::PackageId> {
     let mut unvisited: Vec<_> = metadata
-        .workspace_members
+        .workspace_members()
         .iter()
         .filter(|member| !excluded.contains(member))
         .collect();
     let mut included = Vec::new();
-    let nodes = &metadata.resolve.as_ref().unwrap().nodes;
+    let nodes = &metadata.resolve().as_ref().unwrap().nodes;
     while let Some(package_id) = unvisited.pop() {
         unvisited.extend(
             nodes
@@ -65,7 +65,7 @@ fn included_ids(
                 .filter(|id| !excluded.contains(id))
                 .filter(|id| !included.contains(*id)),
         );
-        if !excluded.contains(&package_id) && !metadata.workspace_members.contains(package_id) {
+        if !excluded.contains(&package_id) && !metadata.workspace_members().contains(package_id) {
             included.push(package_id.to_owned())
         }
     }

@@ -3,12 +3,12 @@ use crate::lint::{
     CombineReports, copy_left, extraneous, misnamed, missing_or_unexpected, no_cargo_license,
     no_licenses, unknown_type, unmet_spdx,
 };
+use crate::metadata::Metadata;
 use crate::reporter::Reporter;
-use cargo_metadata::Metadata;
 use std::process::ExitCode;
 
 pub fn check(
-    metadata: Metadata,
+    metadata: impl Metadata,
     config: CheckConfig,
     mut reporter: Reporter,
 ) -> anyhow::Result<ExitCode> {

@@ -1,15 +1,14 @@
+use crate::metadata::Metadata;
+use crate::{config::SearchRemote, filter::Filter};
 use anyhow::Context;
-use cargo_metadata::Metadata;
 use serde::Deserialize;
 use std::path::PathBuf;
 
-use crate::{config::SearchRemote, filter::Filter};
-
-pub fn parse_metadata_toml(metadata: &Metadata) -> anyhow::Result<TomlConfig> {
+pub fn parse_metadata_toml(metadata: &impl Metadata) -> anyhow::Result<TomlConfig> {
     let package = metadata
-        .packages
+        .packages()
         .iter()
-        .find(|p| p.id == metadata.workspace_members[0])
+        .find(|p| p.id == metadata.workspace_members()[0])
         .expect("malformed metadata");
     let empty = serde_json::Value::Object(serde_json::Map::new());
     let value = package.metadata.get("licenses").unwrap_or(&empty);

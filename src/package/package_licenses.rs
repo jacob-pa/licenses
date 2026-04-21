@@ -10,7 +10,7 @@ pub struct PackageLicenses {
 }
 
 pub fn package_licenses(
-    metadata: &Metadata,
+    metadata: &impl Metadata,
     config: &GetConfig,
 ) -> anyhow::Result<Vec<PackageLicenses>> {
     crate::package::dependencies(&config.common, metadata)

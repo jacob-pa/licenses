@@ -1,14 +1,14 @@
 use crate::config::GetConfig;
 use crate::license::OutputLicense;
+use crate::metadata::Metadata;
 use crate::package::{PackageLicenses, package_licenses};
 use crate::reporter::Reporter;
-use cargo_metadata::Metadata;
 use indicatif::ProgressIterator;
 use std::path::Path;
 use std::process::ExitCode;
 
 pub fn get(
-    metadata: Metadata,
+    metadata: impl Metadata,
     config: GetConfig,
     mut reporter: Reporter,
 ) -> anyhow::Result<ExitCode> {
