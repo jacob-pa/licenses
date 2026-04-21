@@ -25,7 +25,7 @@ fn main() -> anyhow::Result<ExitCode> {
     match args {
         Command::Get(args) => get::get(metadata, args.overwrite(config), reporter),
         Command::Check(args) => check::check(metadata, args.overwrite(config), reporter),
-        Command::Summary(args) => summary::summary(args),
+        Command::Summary(args) => summary::summary(args.overwrite(config)),
         Command::Prune(args) => prune::prune(metadata, args.overwrite(config), reporter),
     }
 }
@@ -38,7 +38,7 @@ enum Command {
     /// Check licenses in folder against dependencies, and report any warnings or errors
     Check(CheckArguments),
     /// Print a table to the terminal displaying a summary of dependency licenses
-    Summary(CommonConfig),
+    Summary(SummaryArguments),
     /// Prune the set of license files in the license folder to the minimum that the dependencies require
     Prune(PruneArguments),
 }
@@ -48,7 +48,7 @@ impl Command {
         match self {
             Self::Get(args) => &args.common.project_directory,
             Self::Check(args) => &args.common.project_directory,
-            Self::Summary(args) => &args.project_directory,
+            Self::Summary(args) => &args.common.project_directory,
             Self::Prune(args) => &args.common.project_directory,
         }
     }
@@ -66,8 +66,8 @@ struct GetArguments {
 impl GetArguments {
     fn overwrite(self, config: config::Config) -> config::Config {
         config::Config {
-            common: config.common.overwrite_with(self.common),
-            search: config.search.overwrite_with(self.search),
+            common: self.common.overwrite(config.common),
+            search: self.search.overwrite(config.search),
             ..config
         }
     }
@@ -85,8 +85,22 @@ struct CheckArguments {
 impl CheckArguments {
     fn overwrite(self, config: config::Config) -> config::Config {
         config::Config {
-            common: config.common.overwrite_with(self.common),
-            filter: config.filter.overwrite_with(self.filter),
+            common: self.common.overwrite(config.common),
+            filter: self.filter.overwrite(config.filter),
+            ..config
+        }
+    }
+}
+#[derive(Parser)]
+struct SummaryArguments {
+    #[clap(flatten)]
+    common: CommonConfig,
+}
+
+impl SummaryArguments {
+    fn overwrite(self, config: config::Config) -> config::Config {
+        config::Config {
+            common: self.common.overwrite(config.common),
             ..config
         }
     }
@@ -104,8 +118,8 @@ struct PruneArguments {
 impl PruneArguments {
     fn overwrite(self, config: config::Config) -> config::Config {
         config::Config {
-            common: config.common.overwrite_with(self.common),
-            keep: config.keep.overwrite_with(self.keep),
+            common: self.common.overwrite(config.common),
+            keep: self.keep.overwrite(config.keep),
             ..config
         }
     }

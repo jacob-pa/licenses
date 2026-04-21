@@ -49,22 +49,22 @@ pub struct CommonConfig {
 }
 
 impl CommonConfig {
-    pub fn overwrite_with(self, other: Self) -> Self {
+    pub fn overwrite(self, other: Self) -> Self {
         Self {
-            project_directory: if other.project_directory != default_project_directory() {
+            project_directory: if self.project_directory == default_project_directory() {
                 other.project_directory
             } else {
                 self.project_directory
             },
-            license_directory: if other.license_directory != default_output_directory() {
+            license_directory: if self.license_directory == default_output_directory() {
                 other.license_directory
             } else {
                 self.license_directory
             },
-            excluded: self.excluded.into_iter().chain(other.excluded).collect(),
-            build_dependencies: self.build_dependencies || other.build_dependencies,
-            dev_dependencies: self.dev_dependencies || other.dev_dependencies,
-            quiet: self.quiet || other.quiet,
+            excluded: other.excluded.into_iter().chain(self.excluded).collect(),
+            build_dependencies: other.build_dependencies || self.build_dependencies,
+            dev_dependencies: other.dev_dependencies || self.dev_dependencies,
+            quiet: other.quiet || self.quiet,
         }
     }
 }
@@ -86,13 +86,13 @@ pub struct SearchConfig {
 }
 
 impl SearchConfig {
-    pub fn overwrite_with(self, other: Self) -> Self {
+    pub fn overwrite(self, other: Self) -> Self {
         Self {
-            search_remote: other.search_remote.or(self.search_remote),
-            keywords: if other.keywords.is_empty() {
-                self.keywords
-            } else {
+            search_remote: self.search_remote.or(other.search_remote),
+            keywords: if self.keywords.is_empty() {
                 other.keywords
+            } else {
+                self.keywords
             },
         }
     }
@@ -127,11 +127,11 @@ pub struct FilterConfig {
 }
 
 impl FilterConfig {
-    pub fn overwrite_with(self, other: Self) -> Self {
+    pub fn overwrite(self, other: Self) -> Self {
         Self {
-            allow: self.allow.into_iter().chain(other.allow).collect(),
-            warn: self.warn.into_iter().chain(other.warn).collect(),
-            deny: self.deny.into_iter().chain(other.deny).collect(),
+            allow: other.allow.into_iter().chain(self.allow).collect(),
+            warn: other.warn.into_iter().chain(self.warn).collect(),
+            deny: other.deny.into_iter().chain(self.deny).collect(),
         }
     }
 }
@@ -164,12 +164,12 @@ pub struct KeepConfig {
 }
 
 impl KeepConfig {
-    pub fn overwrite_with(self, other: Self) -> Self {
+    pub fn overwrite(self, other: Self) -> Self {
         Self {
-            licenses: if other.licenses.is_empty() {
-                self.licenses
-            } else {
+            licenses: if self.licenses.is_empty() {
                 other.licenses
+            } else {
+                self.licenses
             },
         }
     }
