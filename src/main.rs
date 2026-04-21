@@ -5,27 +5,28 @@ mod get;
 mod identity;
 mod license;
 mod lint;
+mod metadata;
 mod package;
 mod prune;
 mod report;
 mod reporter;
 mod summary;
 
-use crate::config::{CommonConfig, FilterConfig, SearchConfig, SearchRemote};
+use crate::config::{CommonConfig, FilterConfig, KeepConfig, SearchConfig, SearchRemote};
 use crate::lint::Lint;
 use clap::Parser;
 use std::process::ExitCode;
 
 fn main() -> anyhow::Result<ExitCode> {
     let args = Command::parse();
-    let metadata = config::crate_metadata(args.project_directory())?;
-    let config = config::parse_metadata_config(&metadata)?;
+    let metadata = metadata::crate_metadata(args.project_directory())?;
+    let config = metadata::parse_metadata_config(&metadata)?;
     let reporter = reporter::Reporter::new(config.common.quiet);
     match args {
         Command::Get(args) => get::get(metadata, args.overwrite(config), reporter),
         Command::Check(args) => check::check(metadata, args.overwrite(config), reporter),
         Command::Summary(args) => summary::summary(args),
-        Command::Prune(args) => prune::prune(args),
+        Command::Prune(args) => prune::prune(metadata, args.overwrite(config), reporter),
     }
 }
 
@@ -96,6 +97,16 @@ struct PruneArguments {
     #[clap(flatten)]
     common: CommonConfig,
 
-    /// License names in preference order to keep. Otherwise will arbitrarily prefer alphabetical (e.g. Apache-2.0 > MIT > Unlicense).
-    licenses: Vec<spdx::Licensee>,
+    #[clap(flatten)]
+    keep: KeepConfig,
+}
+
+impl PruneArguments {
+    fn overwrite(self, config: config::Config) -> config::Config {
+        config::Config {
+            common: config.common.overwrite_with(self.common),
+            keep: config.keep.overwrite_with(self.keep),
+            ..config
+        }
+    }
 }

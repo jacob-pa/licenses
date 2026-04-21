@@ -2,19 +2,19 @@ use anyhow::Context;
 use indicatif::ProgressIterator;
 use spdx::{LicenseId, LicenseItem, LicenseReq, Licensee};
 
-use crate::PruneArguments;
+use crate::config::Config;
 use crate::identity::IdentifiedLicense;
 use crate::package::Package;
+use crate::reporter::Reporter;
+use cargo_metadata::Metadata;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-pub fn prune(args: PruneArguments) -> anyhow::Result<ExitCode> {
-    let reporter = crate::reporter::Reporter::new(args.common.quiet);
-    let metadata = crate::config::crate_metadata(&args.common.project_directory)?;
+pub fn prune(metadata: Metadata, args: Config, reporter: Reporter) -> anyhow::Result<ExitCode> {
     let dependencies: Vec<_> = crate::package::dependencies(&args.common, &metadata).collect();
     let licenses = crate::license::output_folder_licenses(&args.common.license_directory);
     let licenses = crate::identity::identified_licenses(&licenses)?;
-    let extraneous = extraneous_licenses(&args.licenses, &dependencies, &licenses);
+    let extraneous = extraneous_licenses(&args.keep.licenses, &dependencies, &licenses);
 
     reporter.info(format!(
         "removing {} extraneous license(s)",

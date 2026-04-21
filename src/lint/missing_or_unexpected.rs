@@ -13,7 +13,6 @@ pub fn missing_or_unexpected(
 
     let missing = expected
         .difference(&found)
-        .cloned()
         .map(|id| Report {
             lint: Lint::Missing,
             level: Level::Error,

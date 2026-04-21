@@ -1,29 +1,9 @@
 use crate::filter::Filter;
-use anyhow::Context;
 pub use cargo_metadata::Metadata;
 use clap::{Parser, ValueEnum};
 use serde::Deserialize;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
-
-pub fn crate_metadata(project_directory: &Path) -> anyhow::Result<Metadata> {
-    cargo_metadata::MetadataCommand::new()
-        .current_dir(project_directory)
-        .exec()
-        .context("failed to execute cargo metadata")
-}
-
-pub fn parse_metadata_config(metadata: &Metadata) -> anyhow::Result<Config> {
-    let package = metadata
-        .packages
-        .iter()
-        .find(|p| p.id == metadata.workspace_members[0])
-        .expect("malformed metadata");
-    let empty = serde_json::Value::Object(serde_json::Map::new());
-    let value = package.metadata.get("licenses").unwrap_or(&empty);
-    serde_json::from_value::<Config>(value.clone())
-        .context("failed to parse lint rules from [package.metadata.licenses]")
-}
 
 #[derive(Deserialize)]
 pub struct Config {
@@ -35,6 +15,9 @@ pub struct Config {
 
     #[serde(flatten)]
     pub search: SearchConfig,
+
+    #[serde(flatten)]
+    pub keep: KeepConfig,
 }
 
 #[derive(Deserialize, Parser)]
@@ -129,15 +112,15 @@ pub enum SearchRemote {
 
 #[derive(Deserialize, Parser)]
 pub struct FilterConfig {
-    #[serde(default, deserialize_with = "filters_from_strings")]
+    #[serde(default, deserialize_with = "vec_from_strings")]
     #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
     /// Allow violations of this specific lint, reporting as info only. Sub filters always override non-sub ones.
     pub allow: Vec<Filter>,
-    #[serde(default, deserialize_with = "filters_from_strings")]
+    #[serde(default, deserialize_with = "vec_from_strings")]
     #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
     /// Warn on violations of this specific lint. Override allow if set. Sub filters always override non-sub ones.
     pub warn: Vec<Filter>,
-    #[serde(default, deserialize_with = "filters_from_strings")]
+    #[serde(default, deserialize_with = "vec_from_strings")]
     #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
     /// Deny violations of this specific lint, reporting as an error. Overrides allow or warn if set. Sub filters always override non-sub ones.
     pub deny: Vec<Filter>,
@@ -153,13 +136,15 @@ impl FilterConfig {
     }
 }
 
-fn filters_from_strings<'de, D>(deserializer: D) -> Result<Vec<Filter>, D::Error>
+fn vec_from_strings<'de, D, S>(deserializer: D) -> Result<Vec<S>, D::Error>
 where
     D: serde::Deserializer<'de>,
+    S: FromStr,
+    S::Err: std::fmt::Display,
 {
     Vec::<String>::deserialize(deserializer)?
         .into_iter()
-        .map(|s| Filter::from_str(&s).map_err(serde::de::Error::custom))
+        .map(|s| S::from_str(&s).map_err(serde::de::Error::custom))
         .collect()
 }
 
@@ -169,4 +154,23 @@ fn default_project_directory() -> PathBuf {
 
 fn default_output_directory() -> PathBuf {
     "./licenses/".into()
+}
+
+#[derive(Deserialize, Parser)]
+pub struct KeepConfig {
+    #[serde(default, deserialize_with = "vec_from_strings")]
+    /// License names in preference order to keep. Otherwise will arbitrarily prefer alphabetical (e.g. Apache-2.0 > MIT > Unlicense).
+    pub(crate) licenses: Vec<spdx::Licensee>,
+}
+
+impl KeepConfig {
+    pub fn overwrite_with(self, other: Self) -> Self {
+        Self {
+            licenses: if other.licenses.is_empty() {
+                self.licenses
+            } else {
+                other.licenses
+            },
+        }
+    }
 }

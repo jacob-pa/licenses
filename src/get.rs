@@ -1,4 +1,3 @@
-use crate::GetArguments;
 use crate::config::Config;
 use crate::license::OutputLicense;
 use crate::package::{PackageLicenses, package_licenses};
