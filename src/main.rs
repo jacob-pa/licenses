@@ -11,7 +11,7 @@ mod report;
 mod reporter;
 mod summary;
 
-use crate::config::{CommonConfig, FilterConfig, SearchRemote};
+use crate::config::{CommonConfig, FilterConfig, SearchConfig, SearchRemote};
 use crate::lint::Lint;
 use clap::Parser;
 use std::process::ExitCode;
@@ -22,7 +22,7 @@ fn main() -> anyhow::Result<ExitCode> {
     let config = config::parse_metadata_config(&metadata)?;
     let reporter = reporter::Reporter::new(config.common.quiet);
     match args {
-        Command::Get(args) => get::get(args),
+        Command::Get(args) => get::get(metadata, args.overwrite(config), reporter),
         Command::Check(args) => check::check(metadata, args.overwrite(config), reporter),
         Command::Summary(args) => summary::summary(args),
         Command::Prune(args) => prune::prune(args),
@@ -58,17 +58,18 @@ struct GetArguments {
     #[clap(flatten)]
     common: CommonConfig,
 
-    #[clap(short, long, default_value = "never")]
-    /// Whether to only search on disk or also remotely on github.com
-    search_remote: SearchRemote,
+    #[clap(flatten)]
+    search: SearchConfig,
+}
 
-    #[clap(
-        short,
-        long,
-        default_values_t = ["license", "copying", "author", "copyright", "notice"].into_iter().map(|s| s.to_string()).collect::<Vec<_>>()
-    )]
-    /// Keywords to search for in file name to identify license files
-    keywords: Vec<String>,
+impl GetArguments {
+    fn overwrite(self, config: config::Config) -> config::Config {
+        config::Config {
+            common: config.common.overwrite_with(self.common),
+            search: config.search.overwrite_with(self.search),
+            ..config
+        }
+    }
 }
 
 #[derive(Parser)]
@@ -85,6 +86,7 @@ impl CheckArguments {
         config::Config {
             common: config.common.overwrite_with(self.common),
             filter: config.filter.overwrite_with(self.filter),
+            ..config
         }
     }
 }

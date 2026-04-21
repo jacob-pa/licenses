@@ -32,6 +32,9 @@ pub struct Config {
 
     #[serde(flatten)]
     pub filter: FilterConfig,
+
+    #[serde(flatten)]
+    pub search: SearchConfig,
 }
 
 #[derive(Deserialize, Parser)]
@@ -83,8 +86,39 @@ impl CommonConfig {
     }
 }
 
-#[derive(ValueEnum, Clone, Copy)]
+#[derive(Deserialize, Parser)]
+pub struct SearchConfig {
+    #[clap(short, long)]
+    /// Whether to only search on disk or also remotely on github.com
+    pub(crate) search_remote: Option<SearchRemote>,
+
+    #[serde(default)]
+    #[clap(
+        short,
+        long,
+        default_values_t = ["license", "copying", "author", "copyright", "notice"].into_iter().map(|s| s.to_string()).collect::<Vec<_>>()
+    )]
+    /// Keywords to search for in file name to identify license files
+    pub(crate) keywords: Vec<String>,
+}
+
+impl SearchConfig {
+    pub fn overwrite_with(self, other: Self) -> Self {
+        Self {
+            search_remote: other.search_remote.or(self.search_remote),
+            keywords: if other.keywords.is_empty() {
+                self.keywords
+            } else {
+                other.keywords
+            },
+        }
+    }
+}
+
+#[derive(Deserialize, ValueEnum, Clone, Copy, Default)]
+#[serde(rename_all = "kebab-case")]
 pub enum SearchRemote {
+    #[default]
     /// never search remotely for license files, only locally
     Never,
     /// search remotely for license files only if none are found locally
