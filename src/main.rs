@@ -20,9 +20,13 @@ use std::process::ExitCode;
 use std::str::FromStr;
 
 fn main() -> anyhow::Result<ExitCode> {
-    match Command::parse() {
+    let args = Command::parse();
+    let metadata = config::crate_metadata(args.project_directory())?;
+    let config = config::config(&metadata)?;
+    let reporter = crate::reporter::Reporter::new(config.common.quiet);
+    match args {
         Command::Get(args) => get::get(args),
-        Command::Check(args) => check::check(args),
+        Command::Check(args) => check::check(metadata, args.overwrite(config), reporter),
         Command::Summary(args) => summary::summary(args),
         Command::Prune(args) => prune::prune(args),
     }
@@ -39,6 +43,17 @@ enum Command {
     Summary(CommonConfig),
     /// Prune the set of license files in the license folder to the minimum that the dependencies require
     Prune(PruneArguments),
+}
+
+impl Command {
+    fn project_directory(&self) -> &std::path::Path {
+        match self {
+            Self::Get(args) => &args.common.project_directory,
+            Self::Check(args) => &args.common.project_directory,
+            Self::Summary(args) => &args.project_directory,
+            Self::Prune(args) => &args.common.project_directory,
+        }
+    }
 }
 
 #[derive(Parser)]
@@ -66,6 +81,15 @@ struct CheckArguments {
 
     #[clap(flatten)]
     filter: FilterConfig,
+}
+
+impl CheckArguments {
+    fn overwrite(self, config: config::Config) -> config::Config {
+        config::Config {
+            common: config.common.overwrite_with(self.common),
+            ..config
+        }
+    }
 }
 
 #[derive(Parser)]
