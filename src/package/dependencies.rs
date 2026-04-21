@@ -1,5 +1,5 @@
 use super::Package;
-use crate::CommonConfig;
+use crate::config::CommonConfig;
 use cargo_metadata::{DepKindInfo, DependencyKind, Metadata};
 use itertools::Itertools;
 

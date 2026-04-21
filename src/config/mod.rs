@@ -1,11 +1,14 @@
-use crate::{
-    arguments::{Arguments, CheckArguments, CommonArguments, GetArguments, PruneArguments},
-    filter::Filter,
-    metadata::{CommonToml, ConfigToml},
-};
-pub use cargo_metadata::Metadata;
+mod arguments;
+mod toml;
+
+pub use arguments::Arguments;
+pub use toml::parse_metadata_toml;
+
+use crate::filter::Filter;
+use arguments::{CheckArguments, CommonArguments, GetArguments, PruneArguments};
 use clap::ValueEnum;
 use std::path::PathBuf;
+use toml::{CommonToml, ConfigToml};
 
 const DEFAULT_LICENSE_DIRECTORY: &str = "./licenses";
 const DEFAULT_KEYWORDS: &[&str] = &["license", "copying", "author", "copyright", "notice"];

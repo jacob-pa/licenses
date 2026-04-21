@@ -1,4 +1,3 @@
-mod arguments;
 mod check;
 mod config;
 mod filter;
@@ -13,16 +12,15 @@ mod report;
 mod reporter;
 mod summary;
 
-use crate::arguments::Arguments;
-use crate::config::{CommonConfig, Config, SearchRemote};
 use crate::lint::Lint;
 use clap::Parser;
+use config::Config;
 use std::process::ExitCode;
 
 fn main() -> anyhow::Result<ExitCode> {
-    let args = Arguments::parse();
+    let args = config::Arguments::parse();
     let metadata = metadata::crate_metadata(&args.common().project_directory)?;
-    let toml_config = metadata::parse_metadata_config(&metadata)?;
+    let toml_config = config::parse_metadata_toml(&metadata)?;
     let config = config::config(toml_config, args);
     let reporter = reporter::Reporter::new(config.common().quiet);
     match config {
