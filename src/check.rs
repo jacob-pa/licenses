@@ -10,7 +10,7 @@ use std::process::ExitCode;
 pub fn check(
     metadata: impl Metadata,
     config: CheckConfig,
-    mut reporter: Reporter,
+    mut reporter: impl Reporter,
 ) -> anyhow::Result<ExitCode> {
     let filter_rules = crate::filter::FilterRules::new(&config);
     let dependencies: Vec<_> = crate::package::dependencies(&config.common, &metadata).collect();

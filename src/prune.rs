@@ -13,7 +13,7 @@ use std::process::ExitCode;
 pub fn prune(
     metadata: impl Metadata,
     config: PruneConfig,
-    reporter: Reporter,
+    reporter: impl Reporter,
 ) -> anyhow::Result<ExitCode> {
     let dependencies: Vec<_> = crate::package::dependencies(&config.common, &metadata).collect();
     let licenses = crate::license::output_folder_licenses(&config.common.license_directory);

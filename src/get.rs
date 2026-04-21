@@ -10,7 +10,7 @@ use std::process::ExitCode;
 pub fn get(
     metadata: impl Metadata,
     config: GetConfig,
-    mut reporter: Reporter,
+    mut reporter: impl Reporter,
 ) -> anyhow::Result<ExitCode> {
     let dependencies = package_licenses(&metadata, &config)?;
     let no_licenses = dependencies_with_no_licenses(&dependencies);

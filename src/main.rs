@@ -22,7 +22,7 @@ fn main() -> anyhow::Result<ExitCode> {
     let metadata = metadata::crate_metadata(&args.common().project_directory)?;
     let toml_config = config::parse_metadata_toml(&metadata)?;
     let config = config::config(toml_config, args);
-    let reporter = reporter::Reporter::new(config.common().quiet);
+    let reporter = reporter::StdoutReporter::new(config.common().quiet);
     match config {
         Config::Get(config) => get::get(metadata, config, reporter),
         Config::Check(config) => check::check(metadata, config, reporter),
