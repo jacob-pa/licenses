@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use crate::{config::SearchRemote, filter::Filter};
 
-pub fn parse_metadata_toml(metadata: &Metadata) -> anyhow::Result<ConfigToml> {
+pub fn parse_metadata_toml(metadata: &Metadata) -> anyhow::Result<TomlConfig> {
     let package = metadata
         .packages
         .iter()
@@ -13,14 +13,14 @@ pub fn parse_metadata_toml(metadata: &Metadata) -> anyhow::Result<ConfigToml> {
         .expect("malformed metadata");
     let empty = serde_json::Value::Object(serde_json::Map::new());
     let value = package.metadata.get("licenses").unwrap_or(&empty);
-    serde_json::from_value::<ConfigToml>(value.clone())
+    serde_json::from_value::<TomlConfig>(value.clone())
         .context("failed to parse lint rules from [package.metadata.licenses]")
 }
 
 #[derive(serde::Deserialize)]
-pub struct ConfigToml {
+pub struct TomlConfig {
     #[serde(flatten)]
-    pub common: CommonToml,
+    pub common: TomlCommon,
     pub search_remote: Option<SearchRemote>,
     pub keywords: Option<Vec<String>>,
     #[serde(default, deserialize_with = "vec_from_strings")]
@@ -34,7 +34,7 @@ pub struct ConfigToml {
 }
 
 #[derive(serde::Deserialize)]
-pub struct CommonToml {
+pub struct TomlCommon {
     pub license_directory: Option<PathBuf>,
     pub excluded: Option<Vec<String>>,
     pub build_dependencies: Option<bool>,

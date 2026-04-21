@@ -8,12 +8,12 @@ use crate::filter::Filter;
 use arguments::{CheckArguments, CommonArguments, GetArguments, PruneArguments};
 use clap::ValueEnum;
 use std::path::PathBuf;
-use toml::{CommonToml, ConfigToml};
+use toml::{TomlCommon, TomlConfig};
 
 const DEFAULT_LICENSE_DIRECTORY: &str = "./licenses";
 const DEFAULT_KEYWORDS: &[&str] = &["license", "copying", "author", "copyright", "notice"];
 
-pub fn config(toml: ConfigToml, args: Arguments) -> Config {
+pub fn config(toml: TomlConfig, args: Arguments) -> Config {
     match args {
         Arguments::Get(args) => Config::Get(GetConfig::new(toml, args)),
         Arguments::Check(args) => Config::Check(CheckConfig::new(toml, args)),
@@ -47,7 +47,7 @@ pub struct GetConfig {
 }
 
 impl GetConfig {
-    pub fn new(toml: ConfigToml, args: GetArguments) -> Self {
+    pub fn new(toml: TomlConfig, args: GetArguments) -> Self {
         Self {
             common: CommonConfig::new(toml.common, args.common),
             search_remote: args
@@ -70,7 +70,7 @@ pub struct CheckConfig {
 }
 
 impl CheckConfig {
-    pub fn new(toml: ConfigToml, args: CheckArguments) -> Self {
+    pub fn new(toml: TomlConfig, args: CheckArguments) -> Self {
         Self {
             common: CommonConfig::new(toml.common, args.common),
             allow: args.allow.or(toml.allow).unwrap_or_default(),
@@ -86,7 +86,7 @@ pub struct PruneConfig {
 }
 
 impl PruneConfig {
-    pub fn new(toml: ConfigToml, args: PruneArguments) -> Self {
+    pub fn new(toml: TomlConfig, args: PruneArguments) -> Self {
         Self {
             common: CommonConfig::new(toml.common, args.common),
             licenses: args.licenses.or(toml.licenses).unwrap_or_default(),
@@ -103,7 +103,7 @@ pub struct CommonConfig {
 }
 
 impl CommonConfig {
-    pub fn new(toml: CommonToml, args: CommonArguments) -> Self {
+    pub fn new(toml: TomlCommon, args: CommonArguments) -> Self {
         Self {
             license_directory: args
                 .license_directory
