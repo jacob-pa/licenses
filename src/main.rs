@@ -23,7 +23,7 @@ fn main() -> anyhow::Result<ExitCode> {
     let args = Command::parse();
     let metadata = config::crate_metadata(args.project_directory())?;
     let config = config::config(&metadata)?;
-    let reporter = crate::reporter::Reporter::new(config.common.quiet);
+    let reporter = reporter::Reporter::new(config.common.quiet);
     match args {
         Command::Get(args) => get::get(args),
         Command::Check(args) => check::check(metadata, args.overwrite(config), reporter),
