@@ -6,7 +6,7 @@ license = "MIT"
 
 [dependencies]
 clap = { version = "*", default-features = true, features = ["derive"] }
-cargo_metadata = { version = "*", default-features = false }
+cargo_metadata = { version = "*", default-features = false, features = ["builder"] }
 anyhow = "*"
 ureq = { version = "*", features = ["json"] }
 url = { version = "*", features = ["serde"] }
